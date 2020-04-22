@@ -116,7 +116,9 @@ for df in dfs:
     original_ratio = len(label_relevants)/len(label_0s)
     trainll, testll = getIndexes(label_relevants, label_0s) #contains indexes for testing and training
 
+    print("---------------------------------------------------")
     TP_NB, TN_NB, FP_NB, FN_NB = 0, 0, 0, 0
+    TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf = 0, 0, 0, 0
     for i in range(10):
         #select reviews
         corpus_train = df['Text'].iloc[trainll[i]]
@@ -137,6 +139,7 @@ for df in dfs:
         transformer = TfidfTransformer(smooth_idf=False)
         tfidf_train = transformer.fit_transform(bow_train)
         tfidf_train.toarray()
+        tfidf_test = transformer.transform(bow_test)
 
         #train, predict and evaluate with Multinomial Naive Bayes
         naive_bayes = MultinomialNB()
@@ -148,8 +151,20 @@ for df in dfs:
         FP_NB += FP_NBt
         FN_NB += FN_NBt
 
-precision, recall, fmeasure = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
-print("Naive Bayes:\n\tPrecision = "+ str(precision) + "\n\tRecall = "+str(recall) + "\n\tF-Measure = "+str(fmeasure))
+        # train, predict and evaluate with Multinomial Naive Bayes
+        naive_bayes = MultinomialNB()
+        naive_bayes.fit(tfidf_train, labels_train)
+        predictions = naive_bayes.predict(tfidf_test)
+        TP_NBtft, TN_NBtft, FP_NBtft, FN_NBtft = confusionMatrix(predictions, labels_test)
+        TP_NBtf += TP_NBtft
+        TN_NBtf += TN_NBtft
+        FP_NBtf += FP_NBtft
+        FN_NBtf += FN_NBtft
+
+    precision_NBbow, recall_NBbow, fmeasure_NBbow = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
+    print("Naive Bayes - BOW:\n\tPrecision = "+ str(precision_NBbow) + "\n\tRecall = "+str(recall_NBbow) + "\n\tF-Measure = "+str(fmeasure_NBbow))
+    precision_NBbow, recall_NBbow, fmeasure_NBbow = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
+    print("Naive Bayes - TF-IDF:\n\tPrecision = "+ str(precision_NBbow) + "\n\tRecall = "+str(recall_NBbow) + "\n\tF-Measure = "+str(fmeasure_NBbow))
 
 
 
