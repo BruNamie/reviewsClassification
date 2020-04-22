@@ -5,8 +5,7 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
-from sklearn.model_selection import train_test_split
-from sklearn import datasets
+from sklearn.naive_bayes import MultinomialNB
 from sklearn import svm
 
 #load dataset and return dataframes
@@ -79,22 +78,78 @@ def getIndexes(label_relevants, label_0s):
 
     return list_of_training_indexes_lists, list_of_testing_indexes_lists
 
+def confusionMatrix(predictions, real_labels):
+    TrueNegatives = 0
+    FalseNegatives = 0
+    TruePositives = 0
+    FalsePositives = 0
+
+    predictions = predictions.tolist()
+    real_labels = real_labels.tolist()
+
+    for i in range(len(predictions)):
+        if(predictions[i] == "_Label_Zero"):
+            if(predictions[i] == real_labels[i]):
+                TrueNegatives +=1
+            else:
+                FalseNegatives+=1
+        else:
+            if(predictions[i] == real_labels[i]):
+                TruePositives +=1
+            else:
+                FalsePositives +=1
+    return TruePositives, TrueNegatives, FalsePositives, FalseNegatives
+
+def evaluate(TruePositives, TrueNegatives, FalsePositives, FalseNegatives):
+    precision = (TruePositives)/(TruePositives + FalsePositives)
+    recall = TruePositives/(TruePositives + FalseNegatives)
+    fmeasure = 2*precision*recall/(precision + recall)
+
+    return precision, recall, fmeasure
+
+#MAIN
 dfs = load_data()
+
 for df in dfs:
     label_0s = df.index[df['Label'] == '_Label_Zero'].tolist() #contains indexes which column label matches label_zero
     label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
     original_ratio = len(label_relevants)/len(label_0s)
     trainll, testll = getIndexes(label_relevants, label_0s) #contains indexes for testing and training
 
-    corpus = df['Text']
-    #Bag of Words
-    vectorizer = CountVectorizer()
-    bow = vectorizer.fit_transform(corpus)
-    bow = bow.toarray()
-    bow_names = vectorizer.get_feature_names()
+    TP_NB, TN_NB, FP_NB, FN_NB = 0, 0, 0, 0
+    for i in range(10):
+        #select reviews
+        corpus_train = df['Text'].iloc[trainll[i]]
+        corpus_test = df['Text'].iloc[testll[i]]
+        #select labels
+        labels_train = df['Label'].iloc[trainll[i]]
+        labels_test = df['Label'].iloc[testll[i]]
 
-    #Term Frequency - Inverse Document Frequency
-    transformer = TfidfTransformer(smooth_idf=False)
-    tfidf = transformer.fit_transform(bow)
-    tfidf.toarray()
+        #Bag of Words
+        vectorizer = CountVectorizer()
+        bow_train = vectorizer.fit_transform(corpus_train)
+        bow_train = bow_train.toarray()
+        #bow_names = vectorizer.get_feature_names()
+        bow_test = vectorizer.transform(corpus_test)
+
+
+        #Term Frequency - Inverse Document Frequency
+        transformer = TfidfTransformer(smooth_idf=False)
+        tfidf_train = transformer.fit_transform(bow_train)
+        tfidf_train.toarray()
+
+        #train, predict and evaluate with Multinomial Naive Bayes
+        naive_bayes = MultinomialNB()
+        naive_bayes.fit(bow_train, labels_train)
+        predictions = naive_bayes.predict(bow_test)
+        TP_NBt, TN_NBt, FP_NBt, FN_NBt = confusionMatrix(predictions, labels_test)
+        TP_NB += TP_NBt
+        TN_NB += TN_NBt
+        FP_NB += FP_NBt
+        FN_NB += FN_NBt
+
+precision, recall, fmeasure = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
+print("Naive Bayes:\n\tPrecision = "+ str(precision) + "\n\tRecall = "+str(recall) + "\n\tF-Measure = "+str(fmeasure))
+
+
 
