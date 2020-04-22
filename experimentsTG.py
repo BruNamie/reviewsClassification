@@ -6,7 +6,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
 from sklearn.naive_bayes import MultinomialNB
-from sklearn import svm
+from sklearn.feature_selection import chi2
+from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
 #load dataset and return dataframes
 def load_data():
@@ -119,6 +122,9 @@ for df in dfs:
     print("---------------------------------------------------")
     TP_NB, TN_NB, FP_NB, FN_NB = 0, 0, 0, 0
     TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf = 0, 0, 0, 0
+    TP_SVM, TN_SVM, FP_SVM, FN_SVM = 0, 0, 0, 0
+    TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf = 0, 0, 0, 0
+    unigrams = []
     for i in range(10):
         #select reviews
         corpus_train = df['Text'].iloc[trainll[i]]
@@ -128,12 +134,11 @@ for df in dfs:
         labels_test = df['Label'].iloc[testll[i]]
 
         #Bag of Words
-        vectorizer = CountVectorizer()
+        vectorizer = CountVectorizer(stop_words='english')
         bow_train = vectorizer.fit_transform(corpus_train)
         bow_train = bow_train.toarray()
         #bow_names = vectorizer.get_feature_names()
         bow_test = vectorizer.transform(corpus_test)
-
 
         #Term Frequency - Inverse Document Frequency
         transformer = TfidfTransformer(smooth_idf=False)
@@ -141,7 +146,14 @@ for df in dfs:
         tfidf_train.toarray()
         tfidf_test = transformer.transform(bow_test)
 
-        #train, predict and evaluate with Multinomial Naive Bayes
+        #chi2 to select the best correlated terms
+        features_chi2 = chi2(bow_train, labels_train)
+        indices = np.argsort(features_chi2[0])
+        feature_names = np.array(vectorizer.get_feature_names())[indices]
+        unigramst = [v for v in feature_names if len(v.split(' ')) == 1]
+        unigrams.extend(unigramst[-5:])
+
+        #train, predict and evaluate with Multinomial Naive Bayes - BOW
         naive_bayes = MultinomialNB()
         naive_bayes.fit(bow_train, labels_train)
         predictions = naive_bayes.predict(bow_test)
@@ -151,7 +163,7 @@ for df in dfs:
         FP_NB += FP_NBt
         FN_NB += FN_NBt
 
-        # train, predict and evaluate with Multinomial Naive Bayes
+        # train, predict and evaluate with Multinomial Naive Bayes - TFIDF
         naive_bayes = MultinomialNB()
         naive_bayes.fit(tfidf_train, labels_train)
         predictions = naive_bayes.predict(tfidf_test)
@@ -161,10 +173,33 @@ for df in dfs:
         FP_NBtf += FP_NBtft
         FN_NBtf += FN_NBtft
 
-    precision_NBbow, recall_NBbow, fmeasure_NBbow = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
-    print("Naive Bayes - BOW:\n\tPrecision = "+ str(precision_NBbow) + "\n\tRecall = "+str(recall_NBbow) + "\n\tF-Measure = "+str(fmeasure_NBbow))
-    precision_NBbow, recall_NBbow, fmeasure_NBbow = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
-    print("Naive Bayes - TF-IDF:\n\tPrecision = "+ str(precision_NBbow) + "\n\tRecall = "+str(recall_NBbow) + "\n\tF-Measure = "+str(fmeasure_NBbow))
+        # train, predict and evaluate with SVM - BOW
+        SVM = LinearSVC()
+        SVM.fit(tfidf_train, labels_train)
+        predictions = naive_bayes.predict(tfidf_test)
+        TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
+        TP_SVM += TP_SVMt
+        TN_SVM += TN_SVMt
+        FP_SVM += FP_SVMt
+        FN_SVM += FN_SVMt
 
+        #train, predict and evaluate with SVM - TFIDF
+        SVM = LinearSVC()
+        SVM.fit(tfidf_train, labels_train)
+        predictions = naive_bayes.predict(tfidf_test)
+        TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
+        TP_SVMtf += TP_SVMtft
+        TN_SVMtf += TN_SVMtft
+        FP_SVMtf += FP_SVMtft
+        FN_SVMtf += FN_SVMtft
 
-
+    unigrams = list(dict.fromkeys(unigrams))
+    print("  . Most correlated unigrams:\n." +str(unigrams))
+    precision, recall, fmeasure = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
+    print("Naive Bayes - BOW:\n\tPrecision = "+ str(precision) + "\n\tRecall = "+str(recall) + "\n\tF-Measure = "+str(fmeasure))
+    precision, recall, fmeasure = evaluate(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
+    print("Naive Bayes - TF-IDF:\n\tPrecision = "+ str(precision) + "\n\tRecall = "+str(recall) + "\n\tF-Measure = "+str(fmeasure))
+    precision, recall, fmeasure = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+    print("SVM - BOW:\n\tPrecision = "+ str(precision) + "\n\tRecall = "+str(recall) + "\n\tF-Measure = "+str(fmeasure))
+    precision, recall, fmeasure = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+    print("SVM - TF-IDF:\n\tPrecision = "+ str(precision) + "\n\tRecall = "+str(recall) + "\n\tF-Measure = "+str(fmeasure))
