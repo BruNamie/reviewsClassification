@@ -148,7 +148,12 @@ def printConfusionMatrix(TruePositives, TrueNegatives, FalsePositives, FalseNega
     print("\t"+str(TruePositives) + "|" + str(FalseNegatives))
     print("\t"+str(FalsePositives)+ "|" + str(TrueNegatives)+"\n")
 
-def print_evaluation(dfs, classes, getIndexes, title):
+def printEvalCost(TruePositives, TrueNegatives, FalsePositives, FalseNegatives, ratio):
+    cost = 0*TruePositives + 0*TrueNegatives + 1*FalsePositives + FalseNegatives/ratio
+    print("Cost: " + str(cost) + "\n")
+
+
+def print_evaluation(dfs, classes, getIndexes, title, costLearning):
     print("============================================================================")
     print(title)
     for i in range(len(dfs)): #each dataframe corresponds to a different class
@@ -157,6 +162,7 @@ def print_evaluation(dfs, classes, getIndexes, title):
 
         label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()
         label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
+        ratio = len(label_relevants)/len(label_0s)
         fold_size_0 = floor(len(label_0s) / 10)
         fold_size_relevant = floor(len(label_relevants) / 10)
 
@@ -242,124 +248,191 @@ def print_evaluation(dfs, classes, getIndexes, title):
                 unigramst = [v for v in feature_names if len(v.split(' ')) == 1]
                 unigrams.extend(unigramst[-5:])
 
-            #train, predict and evaluate with Multinomial Naive Bayes - BOW
-            naive_bayes = MultinomialNB()
-            naive_bayes.fit(bow_train, labels_train_bow)
-            predictions = naive_bayes.predict(bow_test)
-            TP_NBt, TN_NBt, FP_NBt, FN_NBt = confusionMatrix(predictions, labels_test)
-            TP_NB += TP_NBt
-            TN_NB += TN_NBt
-            FP_NB += FP_NBt
-            FN_NB += FN_NBt
+            if(costLearning):
+                # train, predict and evaluate with SVM - BOW
+                SVM = LinearSVC(class_weight='balanced')
+                SVM.fit(bow_train, labels_train_bow)
+                predictions = SVM.predict(bow_test)
+                TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
+                TP_SVM += TP_SVMt
+                TN_SVM += TN_SVMt
+                FP_SVM += FP_SVMt
+                FN_SVM += FN_SVMt
 
-            # train, predict and evaluate with Multinomial Naive Bayes - TFIDF
-            naive_bayes = MultinomialNB()
-            naive_bayes.fit(tfidf_train, labels_train_tf)
-            predictions = naive_bayes.predict(tfidf_test)
-            TP_NBtft, TN_NBtft, FP_NBtft, FN_NBtft = confusionMatrix(predictions, labels_test)
-            TP_NBtf += TP_NBtft
-            TN_NBtf += TN_NBtft
-            FP_NBtf += FP_NBtft
-            FN_NBtf += FN_NBtft
+                # train, predict and evaluate with SVM - TFIDF
+                SVM = LinearSVC(class_weight='balanced')
+                SVM.fit(tfidf_train, labels_train_tf)
+                predictions = SVM.predict(tfidf_test)
+                TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
+                TP_SVMtf += TP_SVMtft
+                TN_SVMtf += TN_SVMtft
+                FP_SVMtf += FP_SVMtft
+                FN_SVMtf += FN_SVMtft
 
-            # train, predict and evaluate with SVM - BOW
-            SVM = LinearSVC()
-            SVM.fit(bow_train, labels_train_bow)
-            predictions = SVM.predict(bow_test)
-            TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
-            TP_SVM += TP_SVMt
-            TN_SVM += TN_SVMt
-            FP_SVM += FP_SVMt
-            FN_SVM += FN_SVMt
+                # train, predict and evaluate with Logistic Regression - BOW
+                LR = LogisticRegression(random_state=0, class_weight='balanced')
+                LR.fit(bow_train, labels_train_bow)
+                predictions = LR.predict(bow_test)
+                TP_LRt, TN_LRt, FP_LRt, FN_LRt = confusionMatrix(predictions, labels_test)
+                TP_LR += TP_LRt
+                TN_LR += TN_LRt
+                FP_LR += FP_LRt
+                FN_LR += FN_LRt
 
-            #train, predict and evaluate with SVM - TFIDF
-            SVM = LinearSVC()
-            SVM.fit(tfidf_train, labels_train_tf)
-            predictions = SVM.predict(tfidf_test)
-            TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
-            TP_SVMtf += TP_SVMtft
-            TN_SVMtf += TN_SVMtft
-            FP_SVMtf += FP_SVMtft
-            FN_SVMtf += FN_SVMtft
+                # train, predict and evaluate with Logistic Regression - TFIDF
+                LR = LogisticRegression(random_state=0, class_weight='balanced')
+                LR.fit(tfidf_train, labels_train_tf)
+                predictions = LR.predict(tfidf_test)
+                TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
+                TP_LRtf += TP_LRtft
+                TN_LRtf += TN_LRtft
+                FP_LRtf += FP_LRtft
+                FN_LRtf += FN_LRtft
+            else:
+                #train, predict and evaluate with Multinomial Naive Bayes - BOW
+                naive_bayes = MultinomialNB()
+                naive_bayes.fit(bow_train, labels_train_bow)
+                predictions = naive_bayes.predict(bow_test)
+                TP_NBt, TN_NBt, FP_NBt, FN_NBt = confusionMatrix(predictions, labels_test)
+                TP_NB += TP_NBt
+                TN_NB += TN_NBt
+                FP_NB += FP_NBt
+                FN_NB += FN_NBt
 
-            # train, predict and evaluate with Logistic Regression - BOW
-            LR = LogisticRegression(random_state=0)
-            LR.fit(bow_train, labels_train_bow)
-            predictions = LR.predict(bow_test)
-            TP_LRt, TN_LRt, FP_LRt, FN_LRt = confusionMatrix(predictions, labels_test)
-            TP_LR += TP_LRt
-            TN_LR += TN_LRt
-            FP_LR += FP_LRt
-            FN_LR += FN_LRt
+                # train, predict and evaluate with Multinomial Naive Bayes - TFIDF
+                naive_bayes = MultinomialNB()
+                naive_bayes.fit(tfidf_train, labels_train_tf)
+                predictions = naive_bayes.predict(tfidf_test)
+                TP_NBtft, TN_NBtft, FP_NBtft, FN_NBtft = confusionMatrix(predictions, labels_test)
+                TP_NBtf += TP_NBtft
+                TN_NBtf += TN_NBtft
+                FP_NBtf += FP_NBtft
+                FN_NBtf += FN_NBtft
 
-            # train, predict and evaluate with Logistic Regression - TFIDF
-            LR = LogisticRegression(random_state=0)
-            LR.fit(tfidf_train, labels_train_tf)
-            predictions = LR.predict(tfidf_test)
-            TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
-            TP_LRtf += TP_LRtft
-            TN_LRtf += TN_LRtft
-            FP_LRtf += FP_LRtft
-            FN_LRtf += FN_LRtft
+                # train, predict and evaluate with SVM - BOW
+                SVM = LinearSVC()
+                SVM.fit(bow_train, labels_train_bow)
+                predictions = SVM.predict(bow_test)
+                TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
+                TP_SVM += TP_SVMt
+                TN_SVM += TN_SVMt
+                FP_SVM += FP_SVMt
+                FN_SVM += FN_SVMt
 
-            # train, predict and evaluate with Random Forest - BOW
-            RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
-            RF.fit(bow_train, labels_train_bow)
-            predictions = RF.predict(bow_test)
-            TP_RFt, TN_RFt, FP_RFt, FN_RFt = confusionMatrix(predictions, labels_test)
-            TP_RF += TP_RFt
-            TN_RF += TN_RFt
-            FP_RF += FP_RFt
-            FN_RF += FN_RFt
+                #train, predict and evaluate with SVM - TFIDF
+                SVM = LinearSVC()
+                SVM.fit(tfidf_train, labels_train_tf)
+                predictions = SVM.predict(tfidf_test)
+                TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
+                TP_SVMtf += TP_SVMtft
+                TN_SVMtf += TN_SVMtft
+                FP_SVMtf += FP_SVMtft
+                FN_SVMtf += FN_SVMtft
 
-            # train, predict and evaluate with Random Forest - TFIDF
-            RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
-            RF.fit(tfidf_train, labels_train_tf)
-            predictions = RF.predict(tfidf_test)
-            TP_RFtft, TN_RFtft, FP_RFtft, FN_RFtft = confusionMatrix(predictions, labels_test)
-            TP_RFtf += TP_RFtft
-            TN_RFtf += TN_RFtft
-            FP_RFtf += FP_RFtft
-            FN_RFtf += FN_RFtft
+                # train, predict and evaluate with Logistic Regression - BOW
+                LR = LogisticRegression(random_state=0)
+                LR.fit(bow_train, labels_train_bow)
+                predictions = LR.predict(bow_test)
+                TP_LRt, TN_LRt, FP_LRt, FN_LRt = confusionMatrix(predictions, labels_test)
+                TP_LR += TP_LRt
+                TN_LR += TN_LRt
+                FP_LR += FP_LRt
+                FN_LR += FN_LRt
 
-        unigrams = list(dict.fromkeys(unigrams))
-        print("  . Most correlated unigrams:\n." +str(unigrams))
+                # train, predict and evaluate with Logistic Regression - TFIDF
+                LR = LogisticRegression(random_state=0)
+                LR.fit(tfidf_train, labels_train_tf)
+                predictions = LR.predict(tfidf_test)
+                TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
+                TP_LRtf += TP_LRtft
+                TN_LRtf += TN_LRtft
+                FP_LRtf += FP_LRtft
+                FN_LRtf += FN_LRtft
 
-        precisionNB, recallNB, fmeasureNB = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
-        print("Naive Bayes - BOW:\n\tPrecision = "+ str(precisionNB) + "\n\tRecall = "+str(recallNB) + "\n\tF-Measure = "+str(fmeasureNB))
-        printConfusionMatrix(TP_NB, TN_NB, FP_NB, FN_NB)
+                # train, predict and evaluate with Random Forest - BOW
+                RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
+                RF.fit(bow_train, labels_train_bow)
+                predictions = RF.predict(bow_test)
+                TP_RFt, TN_RFt, FP_RFt, FN_RFt = confusionMatrix(predictions, labels_test)
+                TP_RF += TP_RFt
+                TN_RF += TN_RFt
+                FP_RF += FP_RFt
+                FN_RF += FN_RFt
 
-        precisionNBtf, recallNBtf, fmeasureNBtf= evaluate(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
-        print("Naive Bayes - TF-IDF:\n\tPrecision = "+ str(precisionNBtf) + "\n\tRecall = "+str(recallNBtf) + "\n\tF-Measure = "+str(fmeasureNBtf))
-        printConfusionMatrix(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
+                # train, predict and evaluate with Random Forest - TFIDF
+                RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
+                RF.fit(tfidf_train, labels_train_tf)
+                predictions = RF.predict(tfidf_test)
+                TP_RFtft, TN_RFtft, FP_RFtft, FN_RFtft = confusionMatrix(predictions, labels_test)
+                TP_RFtf += TP_RFtft
+                TN_RFtf += TN_RFtft
+                FP_RFtf += FP_RFtft
+                FN_RFtf += FN_RFtft
 
-        precisionSVM, recallSVM, fmeasureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
-        print("SVM - BOW:\n\tPrecision = "+ str(precisionSVM) + "\n\tRecall = "+str(recallSVM) + "\n\tF-Measure = "+str(fmeasureSVM))
-        printConfusionMatrix(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+        if (costLearning):
+            precisionSVM, recallSVM, fmeasureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+            print("SVM - BOW:\n\tPrecision = " + str(precisionSVM) + "\n\tRecall = " + str(
+                recallSVM) + "\n\tF-Measure = " + str(fmeasureSVM))
+            printConfusionMatrix(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+            printEvalCost(TP_SVM, TN_SVM, FP_SVM, FN_SVM, ratio)
 
-        precisionSVMtf, recallSVMtf, fmeasureSVMtf = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
-        print("SVM - TF-IDF:\n\tPrecision = "+ str(precisionSVMtf) + "\n\tRecall = "+str(recallSVMtf) + "\n\tF-Measure = "+str(fmeasureSVMtf))
-        printConfusionMatrix(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+            precisionSVMtf, recallSVMtf, fmeasureSVMtf = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+            print("SVM - TF-IDF:\n\tPrecision = " + str(precisionSVMtf) + "\n\tRecall = " + str(
+                recallSVMtf) + "\n\tF-Measure = " + str(fmeasureSVMtf))
+            printConfusionMatrix(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+            printEvalCost(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf, ratio)
 
-        precisionLR, recallLR, fmeasureLR = evaluate(TP_LR, TN_LR, FP_LR, FN_LR)
-        print("LR - BOW:\n\tPrecision = " + str(precisionLR) + "\n\tRecall = " + str(recallLR) + "\n\tF-Measure = " + str(fmeasureLR))
-        printConfusionMatrix(TP_LR, TN_LR, FP_LR, FN_LR)
+            precisionLR, recallLR, fmeasureLR = evaluate(TP_LR, TN_LR, FP_LR, FN_LR)
+            print("LR - BOW:\n\tPrecision = " + str(precisionLR) + "\n\tRecall = " + str(
+                recallLR) + "\n\tF-Measure = " + str(fmeasureLR))
+            printConfusionMatrix(TP_LR, TN_LR, FP_LR, FN_LR)
+            printEvalCost(TP_LR, TN_LR, FP_LR, FN_LR, ratio)
 
-        precisionLRtf, recallLRtf, fmeasureLRtf = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
-        print("LR - TF-IDF:\n\tPrecision = " + str(precisionLRtf) + "\n\tRecall = " + str(recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf))
-        printConfusionMatrix(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+            precisionLRtf, recallLRtf, fmeasureLRtf = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+            print("LR - TF-IDF:\n\tPrecision = " + str(precisionLRtf) + "\n\tRecall = " + str(
+                recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf))
+            printConfusionMatrix(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+            printEvalCost(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf, ratio)
+        else:
+            unigrams = list(dict.fromkeys(unigrams))
+            print("  . Most correlated unigrams:\n." +str(unigrams))
 
-        precisionRF, recallRF, fmeasureRF = evaluate(TP_RF, TN_RF, FP_RF, FN_RF)
-        print("RF - BOW:\n\tPrecision = " + str(precisionRF) + "\n\tRecall = " + str(recallRF) + "\n\tF-Measure = " + str(fmeasureRF))
-        printConfusionMatrix(TP_RF, TN_RF, FP_RF, FN_RF)
+            precisionNB, recallNB, fmeasureNB = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
+            print("Naive Bayes - BOW:\n\tPrecision = "+ str(precisionNB) + "\n\tRecall = "+str(recallNB) + "\n\tF-Measure = "+str(fmeasureNB))
+            printConfusionMatrix(TP_NB, TN_NB, FP_NB, FN_NB)
 
-        precisionRFtf, recallRFtf, fmeasureRFtf = evaluate(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
-        print("RF - TF-IDF:\n\tPrecision = " + str(precisionRFtf) + "\n\tRecall = " + str(recallRFtf) + "\n\tF-Measure = " + str(fmeasureRFtf))
-        printConfusionMatrix(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
+            precisionNBtf, recallNBtf, fmeasureNBtf= evaluate(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
+            print("Naive Bayes - TF-IDF:\n\tPrecision = "+ str(precisionNBtf) + "\n\tRecall = "+str(recallNBtf) + "\n\tF-Measure = "+str(fmeasureNBtf))
+            printConfusionMatrix(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
+
+            precisionSVM, recallSVM, fmeasureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+            print("SVM - BOW:\n\tPrecision = "+ str(precisionSVM) + "\n\tRecall = "+str(recallSVM) + "\n\tF-Measure = "+str(fmeasureSVM))
+            printConfusionMatrix(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+
+            precisionSVMtf, recallSVMtf, fmeasureSVMtf = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+            print("SVM - TF-IDF:\n\tPrecision = "+ str(precisionSVMtf) + "\n\tRecall = "+str(recallSVMtf) + "\n\tF-Measure = "+str(fmeasureSVMtf))
+            printConfusionMatrix(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+
+            precisionLR, recallLR, fmeasureLR = evaluate(TP_LR, TN_LR, FP_LR, FN_LR)
+            print("LR - BOW:\n\tPrecision = " + str(precisionLR) + "\n\tRecall = " + str(recallLR) + "\n\tF-Measure = " + str(fmeasureLR))
+            printConfusionMatrix(TP_LR, TN_LR, FP_LR, FN_LR)
+
+            precisionLRtf, recallLRtf, fmeasureLRtf = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+            print("LR - TF-IDF:\n\tPrecision = " + str(precisionLRtf) + "\n\tRecall = " + str(recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf))
+            printConfusionMatrix(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+
+            precisionRF, recallRF, fmeasureRF = evaluate(TP_RF, TN_RF, FP_RF, FN_RF)
+            print("RF - BOW:\n\tPrecision = " + str(precisionRF) + "\n\tRecall = " + str(recallRF) + "\n\tF-Measure = " + str(fmeasureRF))
+            printConfusionMatrix(TP_RF, TN_RF, FP_RF, FN_RF)
+
+            precisionRFtf, recallRFtf, fmeasureRFtf = evaluate(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
+            print("RF - TF-IDF:\n\tPrecision = " + str(precisionRFtf) + "\n\tRecall = " + str(recallRFtf) + "\n\tF-Measure = " + str(fmeasureRFtf))
+            printConfusionMatrix(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
 
 
 #main
 dfs, labels = load_data()
-print_evaluation(dfs, labels, getIndexesCV, "Normal 10fold - Cross Validation")
-print_evaluation(dfs, labels, getIndexesUS, "10fold - Cross Validation with UnderSampling")
-print_evaluation(dfs, labels, False, "10fold - Cross Validation with SMOTE") #Get indexes = False stands for smote
+#print_evaluation(dfs, labels, getIndexesCV, "Normal 10fold - Cross Validation", False)
+#print_evaluation(dfs, labels, getIndexesUS, "10fold - Cross Validation with UnderSampling", False)
+#print_evaluation(dfs, labels, False, "10fold - Cross Validation with SMOTE", False)    #"Get indexes = False" stands for "smote_mode = on"
+print_evaluation(dfs, labels, getIndexesCV, "Cost Sensitive Learning: 10fold - Cross Validation", True)
