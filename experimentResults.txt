@@ -1,0 +1,822 @@
+============================================================================
+Normal 10fold - Cross Validation
+----------------------------------------------------------------------------
+label: Functional
+  . Most correlated unigrams:
+.['google', 'let', 'option', 'search', 'able', 'read', 'password', 'features', 'notifications', 'email']
+Naive Bayes - BOW:
+	Precision = 0.6027874564459931
+	Recall = 0.43034825870646765
+	F-Measure = 0.5021770682148041
+Confusion Matrix:
+	173|229
+	114|984
+
+Naive Bayes - TF-IDF:
+	Precision = 0.8888888888888888
+	Recall = 0.03980099502487562
+	F-Measure = 0.07619047619047618
+Confusion Matrix:
+	16|386
+	2|1096
+
+SVM - BOW:
+	Precision = 0.5727002967359051
+	Recall = 0.48009950248756217
+	F-Measure = 0.5223274695534507
+Confusion Matrix:
+	193|209
+	144|954
+
+SVM - TF-IDF:
+	Precision = 0.6262626262626263
+	Recall = 0.4626865671641791
+	F-Measure = 0.5321888412017167
+Confusion Matrix:
+	186|216
+	111|987
+
+LR - BOW:
+	Precision = 0.6305970149253731
+	Recall = 0.42039800995024873
+	F-Measure = 0.5044776119402985
+Confusion Matrix:
+	169|233
+	99|999
+
+LR - TF-IDF:
+	Precision = 0.8157894736842105
+	Recall = 0.15422885572139303
+	F-Measure = 0.2594142259414226
+Confusion Matrix:
+	62|340
+	14|1084
+
+RF - BOW:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|402
+	0|1098
+
+RF - TF-IDF:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|402
+	0|1098
+
+----------------------------------------------------------------------------
+label: Performance
+  . Most correlated unigrams:
+.['slow', 'sync', 'app', 'battery', 'crashes', 'connection', 'time', 'keeps', 'crashing']
+Naive Bayes - BOW:
+	Precision = 0.7377049180327869
+	Recall = 0.3829787234042553
+	F-Measure = 0.504201680672269
+Confusion Matrix:
+	90|145
+	32|1233
+
+Naive Bayes - TF-IDF:
+	Precision = 1.0
+	Recall = 0.00425531914893617
+	F-Measure = 0.008474576271186442
+Confusion Matrix:
+	1|234
+	0|1265
+
+SVM - BOW:
+	Precision = 0.6024096385542169
+	Recall = 0.425531914893617
+	F-Measure = 0.4987531172069825
+Confusion Matrix:
+	100|135
+	66|1199
+
+SVM - TF-IDF:
+	Precision = 0.6949152542372882
+	Recall = 0.34893617021276596
+	F-Measure = 0.46458923512747874
+Confusion Matrix:
+	82|153
+	36|1229
+
+LR - BOW:
+	Precision = 0.6990291262135923
+	Recall = 0.30638297872340425
+	F-Measure = 0.42603550295857984
+Confusion Matrix:
+	72|163
+	31|1234
+
+LR - TF-IDF:
+	Precision = 0.8181818181818182
+	Recall = 0.03829787234042553
+	F-Measure = 0.07317073170731707
+Confusion Matrix:
+	9|226
+	2|1263
+
+RF - BOW:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|235
+	0|1265
+
+RF - TF-IDF:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|235
+	0|1265
+
+----------------------------------------------------------------------------
+label: Compatibility
+  . Most correlated unigrams:
+.['onenote', 'ios', 'android', 'ipad', 'iphone', 'apple', 'devices']
+Naive Bayes - BOW:
+	Precision = 0.782608695652174
+	Recall = 0.13533834586466165
+	F-Measure = 0.23076923076923075
+Confusion Matrix:
+	18|115
+	5|1362
+
+Naive Bayes - TF-IDF:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|133
+	0|1367
+
+SVM - BOW:
+	Precision = 0.6458333333333334
+	Recall = 0.46616541353383456
+	F-Measure = 0.5414847161572052
+Confusion Matrix:
+	62|71
+	34|1333
+
+SVM - TF-IDF:
+	Precision = 0.8653846153846154
+	Recall = 0.3383458646616541
+	F-Measure = 0.4864864864864864
+Confusion Matrix:
+	45|88
+	7|1360
+
+LR - BOW:
+	Precision = 0.7454545454545455
+	Recall = 0.3082706766917293
+	F-Measure = 0.43617021276595747
+Confusion Matrix:
+	41|92
+	14|1353
+
+LR - TF-IDF:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|133
+	0|1367
+
+RF - BOW:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|133
+	0|1367
+
+RF - TF-IDF:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|133
+	0|1367
+
+----------------------------------------------------------------------------
+label: Usability
+  . Most correlated unigrams:
+.['ui', 'user', 'icon', 'confusing', 'easy', 'hard', 'navigate', 'interface', 'friendly']
+Naive Bayes - BOW:
+	Precision = 0.8333333333333334
+	Recall = 0.12121212121212122
+	F-Measure = 0.21164021164021166
+Confusion Matrix:
+	20|145
+	4|1331
+
+Naive Bayes - TF-IDF:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|165
+	0|1335
+
+SVM - BOW:
+	Precision = 0.5882352941176471
+	Recall = 0.42424242424242425
+	F-Measure = 0.4929577464788733
+Confusion Matrix:
+	70|95
+	49|1286
+
+SVM - TF-IDF:
+	Precision = 0.7446808510638298
+	Recall = 0.21212121212121213
+	F-Measure = 0.330188679245283
+Confusion Matrix:
+	35|130
+	12|1323
+
+LR - BOW:
+	Precision = 0.8372093023255814
+	Recall = 0.21818181818181817
+	F-Measure = 0.34615384615384615
+Confusion Matrix:
+	36|129
+	7|1328
+
+LR - TF-IDF:
+	Precision = 1.0
+	Recall = 0.012121212121212121
+	F-Measure = 0.02395209580838323
+Confusion Matrix:
+	2|163
+	0|1335
+
+RF - BOW:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|165
+	0|1335
+
+RF - TF-IDF:
+	Precision = -1
+	Recall = 0.0
+	F-Measure = 0.0
+Confusion Matrix:
+	0|165
+	0|1335
+
+============================================================================
+10fold - Cross Validation with UnderSampling
+----------------------------------------------------------------------------
+label: Functional
+  . Most correlated unigrams:
+.['email', 'able', 'google', 'option', 'search', 'features', 'read', 'update', 'let', 'app', 'files', 'notifications', 'drive', 'route']
+Naive Bayes - BOW:
+	Precision = 0.48833819241982507
+	Recall = 0.7976190476190477
+	F-Measure = 0.6057866184448463
+Confusion Matrix:
+	335|85
+	351|709
+
+Naive Bayes - TF-IDF:
+	Precision = 0.5021645021645021
+	Recall = 0.8285714285714286
+	F-Measure = 0.6253369272237197
+Confusion Matrix:
+	348|72
+	345|715
+
+SVM - BOW:
+	Precision = 0.6310904872389791
+	Recall = 0.6476190476190476
+	F-Measure = 0.6392479435957696
+Confusion Matrix:
+	272|148
+	159|901
+
+SVM - TF-IDF:
+	Precision = 0.5964912280701754
+	Recall = 0.7285714285714285
+	F-Measure = 0.6559485530546623
+Confusion Matrix:
+	306|114
+	207|853
+
+LR - BOW:
+	Precision = 0.6290322580645161
+	Recall = 0.65
+	F-Measure = 0.639344262295082
+Confusion Matrix:
+	273|147
+	161|899
+
+LR - TF-IDF:
+	Precision = 0.5652920962199313
+	Recall = 0.7833333333333333
+	F-Measure = 0.6566866267465069
+Confusion Matrix:
+	329|91
+	253|807
+
+RF - BOW:
+	Precision = 0.5868945868945868
+	Recall = 0.49047619047619045
+	F-Measure = 0.5343709468223087
+Confusion Matrix:
+	206|214
+	145|915
+
+RF - TF-IDF:
+	Precision = 0.5895522388059702
+	Recall = 0.5642857142857143
+	F-Measure = 0.5766423357664234
+Confusion Matrix:
+	237|183
+	165|895
+
+----------------------------------------------------------------------------
+label: Performance
+  . Most correlated unigrams:
+.['crashes', '39', 'sync', 'time', 'app', 'keeps', 'times', 'open', 'update', 'start', 'battery', 'slow', 'use', 'going', 'location', 'updated', 'takes']
+Naive Bayes - BOW:
+	Precision = 0.2961309523809524
+	Recall = 0.8291666666666667
+	F-Measure = 0.4364035087719298
+Confusion Matrix:
+	199|41
+	473|727
+
+Naive Bayes - TF-IDF:
+	Precision = 0.30074074074074075
+	Recall = 0.8458333333333333
+	F-Measure = 0.44371584699453553
+Confusion Matrix:
+	203|37
+	472|728
+
+SVM - BOW:
+	Precision = 0.41114058355437666
+	Recall = 0.6458333333333334
+	F-Measure = 0.5024311183144247
+Confusion Matrix:
+	155|85
+	222|978
+
+SVM - TF-IDF:
+	Precision = 0.36381709741550694
+	Recall = 0.7625
+	F-Measure = 0.4925975773889636
+Confusion Matrix:
+	183|57
+	320|880
+
+LR - BOW:
+	Precision = 0.4175531914893617
+	Recall = 0.6541666666666667
+	F-Measure = 0.5097402597402598
+Confusion Matrix:
+	157|83
+	219|981
+
+LR - TF-IDF:
+	Precision = 0.35094339622641507
+	Recall = 0.775
+	F-Measure = 0.4831168831168831
+Confusion Matrix:
+	186|54
+	344|856
+
+RF - BOW:
+	Precision = 0.42517006802721086
+	Recall = 0.5208333333333334
+	F-Measure = 0.4681647940074906
+Confusion Matrix:
+	125|115
+	169|1031
+
+RF - TF-IDF:
+	Precision = 0.3873626373626374
+	Recall = 0.5875
+	F-Measure = 0.46688741721854304
+Confusion Matrix:
+	141|99
+	223|977
+
+----------------------------------------------------------------------------
+label: Compatibility
+  . Most correlated unigrams:
+.['apple', 'update', 'ipad', 'onenote', 'iphone', 'using', 'ios', 'android', 'phone', 'ride']
+Naive Bayes - BOW:
+	Precision = 0.14965986394557823
+	Recall = 0.9166666666666666
+	F-Measure = 0.2573099415204678
+Confusion Matrix:
+	110|10
+	625|715
+
+Naive Bayes - TF-IDF:
+	Precision = 0.15308988764044945
+	Recall = 0.9083333333333333
+	F-Measure = 0.2620192307692308
+Confusion Matrix:
+	109|11
+	603|737
+
+SVM - BOW:
+	Precision = 0.32142857142857145
+	Recall = 0.75
+	F-Measure = 0.45000000000000007
+Confusion Matrix:
+	90|30
+	190|1150
+
+SVM - TF-IDF:
+	Precision = 0.23902439024390243
+	Recall = 0.8166666666666667
+	F-Measure = 0.36981132075471695
+Confusion Matrix:
+	98|22
+	312|1028
+
+LR - BOW:
+	Precision = 0.33976833976833976
+	Recall = 0.7333333333333333
+	F-Measure = 0.46437994722955145
+Confusion Matrix:
+	88|32
+	171|1169
+
+LR - TF-IDF:
+	Precision = 0.23658536585365852
+	Recall = 0.8083333333333333
+	F-Measure = 0.3660377358490566
+Confusion Matrix:
+	97|23
+	313|1027
+
+RF - BOW:
+	Precision = 0.44086021505376344
+	Recall = 0.6833333333333333
+	F-Measure = 0.5359477124183006
+Confusion Matrix:
+	82|38
+	104|1236
+
+RF - TF-IDF:
+	Precision = 0.4120603015075377
+	Recall = 0.6833333333333333
+	F-Measure = 0.5141065830721003
+Confusion Matrix:
+	82|38
+	117|1223
+
+----------------------------------------------------------------------------
+label: Usability
+  . Most correlated unigrams:
+.['friendly', 'hard', 'icon', 'user', 'easy', 'confusing', 'navigate', 'want', 'work', 'new', 'nice', 'use', 'good', 'job', 'screen']
+Naive Bayes - BOW:
+	Precision = 0.20545746388443017
+	Recall = 0.8533333333333334
+	F-Measure = 0.3311772315653299
+Confusion Matrix:
+	128|22
+	495|785
+
+Naive Bayes - TF-IDF:
+	Precision = 0.2131979695431472
+	Recall = 0.84
+	F-Measure = 0.340080971659919
+Confusion Matrix:
+	126|24
+	465|815
+
+SVM - BOW:
+	Precision = 0.3079268292682927
+	Recall = 0.6733333333333333
+	F-Measure = 0.4225941422594143
+Confusion Matrix:
+	101|49
+	227|1053
+
+SVM - TF-IDF:
+	Precision = 0.27007299270072993
+	Recall = 0.74
+	F-Measure = 0.39572192513368987
+Confusion Matrix:
+	111|39
+	300|980
+
+LR - BOW:
+	Precision = 0.32786885245901637
+	Recall = 0.6666666666666666
+	F-Measure = 0.4395604395604395
+Confusion Matrix:
+	100|50
+	205|1075
+
+LR - TF-IDF:
+	Precision = 0.2770780856423174
+	Recall = 0.7333333333333333
+	F-Measure = 0.4021937842778794
+Confusion Matrix:
+	110|40
+	287|993
+
+RF - BOW:
+	Precision = 0.37272727272727274
+	Recall = 0.5466666666666666
+	F-Measure = 0.4432432432432432
+Confusion Matrix:
+	82|68
+	138|1142
+
+RF - TF-IDF:
+	Precision = 0.32116788321167883
+	Recall = 0.5866666666666667
+	F-Measure = 0.4150943396226415
+Confusion Matrix:
+	88|62
+	186|1094
+
+============================================================================
+10fold - Cross Validation with SMOTE
+----------------------------------------------------------------------------
+label: Functional
+  . Most correlated unigrams:
+.[]
+Naive Bayes - BOW:
+	Precision = 0.4016260162601626
+	Recall = 0.5880952380952381
+	F-Measure = 0.47729468599033814
+Confusion Matrix:
+	247|173
+	368|702
+
+Naive Bayes - TF-IDF:
+	Precision = 0.4064516129032258
+	Recall = 0.75
+	F-Measure = 0.5271966527196652
+Confusion Matrix:
+	315|105
+	460|610
+
+SVM - BOW:
+	Precision = 0.3627906976744186
+	Recall = 0.5571428571428572
+	F-Measure = 0.4394366197183099
+Confusion Matrix:
+	234|186
+	411|659
+
+SVM - TF-IDF:
+	Precision = 0.5238095238095238
+	Recall = 0.5238095238095238
+	F-Measure = 0.5238095238095238
+Confusion Matrix:
+	220|200
+	200|870
+
+LR - BOW:
+	Precision = 0.37282780410742494
+	Recall = 0.5619047619047619
+	F-Measure = 0.4482431149097816
+Confusion Matrix:
+	236|184
+	397|673
+
+LR - TF-IDF:
+	Precision = 0.49344978165938863
+	Recall = 0.5380952380952381
+	F-Measure = 0.5148063781321184
+Confusion Matrix:
+	226|194
+	232|838
+
+RF - BOW:
+	Precision = 0.28289473684210525
+	Recall = 0.5119047619047619
+	F-Measure = 0.36440677966101687
+Confusion Matrix:
+	215|205
+	545|525
+
+RF - TF-IDF:
+	Precision = 0.5304659498207885
+	Recall = 0.3523809523809524
+	F-Measure = 0.4234620886981402
+Confusion Matrix:
+	148|272
+	131|939
+
+----------------------------------------------------------------------------
+label: Performance
+  . Most correlated unigrams:
+.[]
+Naive Bayes - BOW:
+	Precision = 0.3277511961722488
+	Recall = 0.5708333333333333
+	F-Measure = 0.41641337386018235
+Confusion Matrix:
+	137|103
+	281|969
+
+Naive Bayes - TF-IDF:
+	Precision = 0.3142857142857143
+	Recall = 0.7333333333333333
+	F-Measure = 0.44
+Confusion Matrix:
+	176|64
+	384|866
+
+SVM - BOW:
+	Precision = 0.22396856581532418
+	Recall = 0.475
+	F-Measure = 0.30440587449933243
+Confusion Matrix:
+	114|126
+	395|855
+
+SVM - TF-IDF:
+	Precision = 0.4859437751004016
+	Recall = 0.5041666666666667
+	F-Measure = 0.49488752556237214
+Confusion Matrix:
+	121|119
+	128|1122
+
+LR - BOW:
+	Precision = 0.23121387283236994
+	Recall = 0.5
+	F-Measure = 0.31620553359683795
+Confusion Matrix:
+	120|120
+	399|851
+
+LR - TF-IDF:
+	Precision = 0.45104895104895104
+	Recall = 0.5375
+	F-Measure = 0.49049429657794674
+Confusion Matrix:
+	129|111
+	157|1093
+
+RF - BOW:
+	Precision = 0.15781487101669195
+	Recall = 0.43333333333333335
+	F-Measure = 0.23136818687430477
+Confusion Matrix:
+	104|136
+	555|695
+
+RF - TF-IDF:
+	Precision = 0.45
+	Recall = 0.3375
+	F-Measure = 0.3857142857142857
+Confusion Matrix:
+	81|159
+	99|1151
+
+----------------------------------------------------------------------------
+label: Compatibility
+  . Most correlated unigrams:
+.[]
+Naive Bayes - BOW:
+	Precision = 0.2140468227424749
+	Recall = 0.5333333333333333
+	F-Measure = 0.3054892601431981
+Confusion Matrix:
+	64|56
+	235|1135
+
+Naive Bayes - TF-IDF:
+	Precision = 0.188470066518847
+	Recall = 0.7083333333333334
+	F-Measure = 0.29772329246935203
+Confusion Matrix:
+	85|35
+	366|1004
+
+SVM - BOW:
+	Precision = 0.1568627450980392
+	Recall = 0.4666666666666667
+	F-Measure = 0.2348008385744235
+Confusion Matrix:
+	56|64
+	301|1069
+
+SVM - TF-IDF:
+	Precision = 0.6276595744680851
+	Recall = 0.49166666666666664
+	F-Measure = 0.5514018691588785
+Confusion Matrix:
+	59|61
+	35|1335
+
+LR - BOW:
+	Precision = 0.1657754010695187
+	Recall = 0.5166666666666667
+	F-Measure = 0.2510121457489879
+Confusion Matrix:
+	62|58
+	312|1058
+
+LR - TF-IDF:
+	Precision = 0.5537190082644629
+	Recall = 0.5583333333333333
+	F-Measure = 0.5560165975103736
+Confusion Matrix:
+	67|53
+	54|1316
+
+RF - BOW:
+	Precision = 0.11131725417439703
+	Recall = 0.5
+	F-Measure = 0.1820940819423369
+Confusion Matrix:
+	60|60
+	479|891
+
+RF - TF-IDF:
+	Precision = 0.5058823529411764
+	Recall = 0.35833333333333334
+	F-Measure = 0.4195121951219512
+Confusion Matrix:
+	43|77
+	42|1328
+
+----------------------------------------------------------------------------
+label: Usability
+  . Most correlated unigrams:
+.[]
+Naive Bayes - BOW:
+	Precision = 0.24
+	Recall = 0.44
+	F-Measure = 0.31058823529411766
+Confusion Matrix:
+	66|84
+	209|1131
+
+Naive Bayes - TF-IDF:
+	Precision = 0.24939467312348668
+	Recall = 0.6866666666666666
+	F-Measure = 0.36589698046181174
+Confusion Matrix:
+	103|47
+	310|1030
+
+SVM - BOW:
+	Precision = 0.16397228637413394
+	Recall = 0.47333333333333333
+	F-Measure = 0.24356775300171524
+Confusion Matrix:
+	71|79
+	362|978
+
+SVM - TF-IDF:
+	Precision = 0.5041322314049587
+	Recall = 0.4066666666666667
+	F-Measure = 0.45018450184501846
+Confusion Matrix:
+	61|89
+	60|1280
+
+LR - BOW:
+	Precision = 0.17577197149643706
+	Recall = 0.49333333333333335
+	F-Measure = 0.25919439579684767
+Confusion Matrix:
+	74|76
+	347|993
+
+LR - TF-IDF:
+	Precision = 0.5348837209302325
+	Recall = 0.46
+	F-Measure = 0.4946236559139785
+Confusion Matrix:
+	69|81
+	60|1280
+
+RF - BOW:
+	Precision = 0.11645101663585952
+	Recall = 0.42
+	F-Measure = 0.18234442836468887
+Confusion Matrix:
+	63|87
+	478|862
+
+RF - TF-IDF:
+	Precision = 0.5555555555555556
+	Recall = 0.3
+	F-Measure = 0.3896103896103896
+Confusion Matrix:
+	45|105
+	36|1304
+
