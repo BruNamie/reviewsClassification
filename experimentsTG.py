@@ -141,9 +141,11 @@ def evaluate(TruePositives, TrueNegatives, FalsePositives, FalseNegatives):
         recall = -1
     else:
         recall = TruePositives/(TruePositives + FalseNegatives)
-    fmeasure = 2*precision*recall/(precision + recall)
+    f1measure = 2*precision*recall/(precision + recall)
 
-    return precision, recall, fmeasure
+    f2measure = 5*TruePositives/(5*TruePositives + 4*FalseNegatives + FalsePositives)
+
+    return precision, recall, f1measure, f2measure
 
 def printConfusionMatrix(TruePositives, TrueNegatives, FalsePositives, FalseNegatives):
     print("Confusion Matrix:")
@@ -400,73 +402,73 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
 
             precisionSVM, recallSVM, fmeasureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
             print("SVM - BOW:\n\tPrecision = " + str(precisionSVM) + "\n\tRecall = " + str(
-                recallSVM) + "\n\tF-Measure = " + str(fmeasureSVM))
+                recallSVM) + "\n\tF-Measure = " + str(fmeasureSVM)+ "\n\tF2-Measure = " + str(f2measureSVM))
             printConfusionMatrix(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
             printEvalCost(TP_SVM, TN_SVM, FP_SVM, FN_SVM, ratio)
 
-            precisionSVMtf, recallSVMtf, fmeasureSVMtf = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+            precisionSVMtf, recallSVMtf, fmeasureSVMtf, f2measureSVMtf = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
             print("SVM - TF-IDF:\n\tPrecision = " + str(precisionSVMtf) + "\n\tRecall = " + str(
-                recallSVMtf) + "\n\tF-Measure = " + str(fmeasureSVMtf))
+                recallSVMtf) + "\n\tF-Measure = " + str(fmeasureSVMtf)+ "\n\tF2-Measure = " + str(f2measureSVMtf))
             printConfusionMatrix(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
             printEvalCost(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf, ratio)
 
-            precisionTREE, recallTREE, fmeasureTREE = evaluate(TP_TREE, TN_TREE, FP_TREE, FN_TREE)
+            precisionTREE, recallTREE, fmeasureTREE, f2measureTREE = evaluate(TP_TREE, TN_TREE, FP_TREE, FN_TREE)
             print("TREE - BOW:\n\tPrecision = " + str(precisionTREE) + "\n\tRecall = " + str(
-                recallTREE) + "\n\tF-Measure = " + str(fmeasureTREE))
+                recallTREE) + "\n\tF-Measure = " + str(fmeasureTREE)+ "\n\tF2-Measure = " + str(f2measureTREE))
             printConfusionMatrix(TP_TREE, TN_TREE, FP_TREE, FN_TREE)
             printEvalCost(TP_TREE, TN_TREE, FP_TREE, FN_TREE, ratio)
 
-            precisionTREEtf, recallTREEtf, fmeasureTREEtf = evaluate(TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf)
+            precisionTREEtf, recallTREEtf, fmeasureTREEtf, f2measureTREEtf = evaluate(TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf)
             print("TREE - TF-IDF:\n\tPrecision = " + str(precisionTREEtf) + "\n\tRecall = " + str(
-                recallTREEtf) + "\n\tF-Measure = " + str(fmeasureTREEtf))
+                recallTREEtf) + "\n\tF-Measure = " + str(fmeasureTREEtf)+ "\n\tF2-Measure = " + str(f2measureTREEtf))
             printConfusionMatrix(TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf)
             printEvalCost(TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf, ratio)
 
-            precisionLR, recallLR, fmeasureLR = evaluate(TP_LR, TN_LR, FP_LR, FN_LR)
+            precisionLR, recallLR, fmeasureLR, f2measureLR = evaluate(TP_LR, TN_LR, FP_LR, FN_LR)
             print("LR - BOW:\n\tPrecision = " + str(precisionLR) + "\n\tRecall = " + str(
-                recallLR) + "\n\tF-Measure = " + str(fmeasureLR))
+                recallLR) + "\n\tF-Measure = " + str(fmeasureLR)+ "\n\tF2-Measure = " + str(f2measureLR))
             printConfusionMatrix(TP_LR, TN_LR, FP_LR, FN_LR)
             printEvalCost(TP_LR, TN_LR, FP_LR, FN_LR, ratio)
 
-            precisionLRtf, recallLRtf, fmeasureLRtf = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+            precisionLRtf, recallLRtf, fmeasureLRtf, f2measureLR = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
             print("LR - TF-IDF:\n\tPrecision = " + str(precisionLRtf) + "\n\tRecall = " + str(
-                recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf))
+                recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf)+ "\n\tF2-Measure = " + str(f2measureLRtf))
             printConfusionMatrix(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
             printEvalCost(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf, ratio)
         else:
             unigrams = list(dict.fromkeys(unigrams))
             print("  . Most correlated unigrams:\n." +str(unigrams))
 
-            precisionNB, recallNB, fmeasureNB = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
-            print("Naive Bayes - BOW:\n\tPrecision = "+ str(precisionNB) + "\n\tRecall = "+str(recallNB) + "\n\tF-Measure = "+str(fmeasureNB))
+            precisionNB, recallNB, fmeasureNB, f2measureNB = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
+            print("Naive Bayes - BOW:\n\tPrecision = "+ str(precisionNB) + "\n\tRecall = "+str(recallNB) + "\n\tF-Measure = "+str(fmeasureNB)+ "\n\tF2-Measure = " + str(f2measureNB))
             printConfusionMatrix(TP_NB, TN_NB, FP_NB, FN_NB)
 
-            precisionNBtf, recallNBtf, fmeasureNBtf= evaluate(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
-            print("Naive Bayes - TF-IDF:\n\tPrecision = "+ str(precisionNBtf) + "\n\tRecall = "+str(recallNBtf) + "\n\tF-Measure = "+str(fmeasureNBtf))
+            precisionNBtf, recallNBtf, fmeasureNBtf, f2measureNBtf= evaluate(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
+            print("Naive Bayes - TF-IDF:\n\tPrecision = "+ str(precisionNBtf) + "\n\tRecall = "+str(recallNBtf) + "\n\tF-Measure = "+str(fmeasureNBtf)+ "\n\tF2-Measure = " + str(f2measureNBtf))
             printConfusionMatrix(TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf)
 
-            precisionSVM, recallSVM, fmeasureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
-            print("SVM - BOW:\n\tPrecision = "+ str(precisionSVM) + "\n\tRecall = "+str(recallSVM) + "\n\tF-Measure = "+str(fmeasureSVM))
+            precisionSVM, recallSVM, fmeasureSVM, f2measureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+            print("SVM - BOW:\n\tPrecision = "+ str(precisionSVM) + "\n\tRecall = "+str(recallSVM) + "\n\tF-Measure = "+str(fmeasureSVM)+ "\n\tF2-Measure = " + str(f2measureSVM))
             printConfusionMatrix(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
 
-            precisionSVMtf, recallSVMtf, fmeasureSVMtf = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
-            print("SVM - TF-IDF:\n\tPrecision = "+ str(precisionSVMtf) + "\n\tRecall = "+str(recallSVMtf) + "\n\tF-Measure = "+str(fmeasureSVMtf))
+            precisionSVMtf, recallSVMtf, fmeasureSVMtf, f2measureSVMtf = evaluate(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
+            print("SVM - TF-IDF:\n\tPrecision = "+ str(precisionSVMtf) + "\n\tRecall = "+str(recallSVMtf) + "\n\tF-Measure = "+str(fmeasureSVMtf)+ "\n\tF2-Measure = " + str(f2measureSVMtf))
             printConfusionMatrix(TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf)
 
-            precisionLR, recallLR, fmeasureLR = evaluate(TP_LR, TN_LR, FP_LR, FN_LR)
-            print("LR - BOW:\n\tPrecision = " + str(precisionLR) + "\n\tRecall = " + str(recallLR) + "\n\tF-Measure = " + str(fmeasureLR))
+            precisionLR, recallLR, fmeasureLR, f2measureLR = evaluate(TP_LR, TN_LR, FP_LR, FN_LR)
+            print("LR - BOW:\n\tPrecision = " + str(precisionLR) + "\n\tRecall = " + str(recallLR) + "\n\tF-Measure = " + str(fmeasureLR)+ "\n\tF2-Measure = " + str(f2measureLR))
             printConfusionMatrix(TP_LR, TN_LR, FP_LR, FN_LR)
 
-            precisionLRtf, recallLRtf, fmeasureLRtf = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
-            print("LR - TF-IDF:\n\tPrecision = " + str(precisionLRtf) + "\n\tRecall = " + str(recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf))
+            precisionLRtf, recallLRtf, fmeasureLRtf, f2measureLRtf = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+            print("LR - TF-IDF:\n\tPrecision = " + str(precisionLRtf) + "\n\tRecall = " + str(recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf)+ "\n\tF2-Measure = " + str(f2measureLRtf))
             printConfusionMatrix(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
 
-            precisionRF, recallRF, fmeasureRF = evaluate(TP_RF, TN_RF, FP_RF, FN_RF)
-            print("RF - BOW:\n\tPrecision = " + str(precisionRF) + "\n\tRecall = " + str(recallRF) + "\n\tF-Measure = " + str(fmeasureRF))
+            precisionRF, recallRF, fmeasureRF, f2measureRF = evaluate(TP_RF, TN_RF, FP_RF, FN_RF)
+            print("RF - BOW:\n\tPrecision = " + str(precisionRF) + "\n\tRecall = " + str(recallRF) + "\n\tF-Measure = " + str(fmeasureRF)+ "\n\tF2-Measure = " + str(f2measureRF))
             printConfusionMatrix(TP_RF, TN_RF, FP_RF, FN_RF)
 
-            precisionRFtf, recallRFtf, fmeasureRFtf = evaluate(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
-            print("RF - TF-IDF:\n\tPrecision = " + str(precisionRFtf) + "\n\tRecall = " + str(recallRFtf) + "\n\tF-Measure = " + str(fmeasureRFtf))
+            precisionRFtf, recallRFtf, fmeasureRFtf, f2measureRFtf = evaluate(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
+            print("RF - TF-IDF:\n\tPrecision = " + str(precisionRFtf) + "\n\tRecall = " + str(recallRFtf) + "\n\tF-Measure = " + str(fmeasureRFtf)+ "\n\tF2-Measure = " + str(f2measureRFtf))
             printConfusionMatrix(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
 
 #main
