@@ -15,6 +15,9 @@ from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn import tree
+from sklearn.ensemble import GradientBoostingClassifier
+
+from joblib import Parallel, delayed
 
 #load dataset and return dataframes
 def load_data():
@@ -156,6 +159,251 @@ def printEvalCost(TruePositives, TrueNegatives, FalsePositives, FalseNegatives, 
     cost = 0*TruePositives + 0*TrueNegatives + 1*FalsePositives + FalseNegatives/ratio
     print("Cost: " + str(cost) + "\n")
 
+# reset counters
+TP_NB, TN_NB, FP_NB, FN_NB = 0, 0, 0, 0
+TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf = 0, 0, 0, 0
+TP_TREE, TN_TREE, FP_TREE, FN_TREE = 0, 0, 0, 0
+TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf = 0, 0, 0, 0
+TP_SVM, TN_SVM, FP_SVM, FN_SVM = 0, 0, 0, 0
+TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf = 0, 0, 0, 0
+TP_LR, TN_LR, FP_LR, FN_LR = 0, 0, 0, 0
+TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf = 0, 0, 0, 0
+TP_RF, TN_RF, FP_RF, FN_RF = 0, 0, 0, 0
+TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf = 0, 0, 0, 0
+TP_Grad, TN_Grad, FP_Grad, FN_Grad = 0, 0, 0, 0
+TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf = 0, 0, 0, 0
+#unigrams = []
+
+def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearning, label_relevants):
+    global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf #, unigrams
+    if (getIndexes == False):  # IF SMOTE:
+
+        label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()  # contains indexes which column label matches label_zero
+        label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
+
+        index_train_zero = label_0s[:j * fold_size_0]
+        index_train_zero.extend(label_0s[(j + 1) * fold_size_0:])
+        index_train_relevant = label_relevants[:j * fold_size_relevant]
+        index_train_relevant.extend(label_relevants[(j + 1) * fold_size_relevant:])
+        index_train = index_train_relevant
+        index_train.extend(index_train_zero)
+
+        test_zero = label_0s[j * fold_size_0:(j + 1) * fold_size_0]
+        test_relevant = label_relevants[j * fold_size_relevant:(j + 1) * fold_size_relevant]
+        index_test = test_zero
+        index_test.extend(test_relevant)
+
+        corpus = df['Text']
+        corpus_train = [corpus[k] for k in index_train]
+        corpus_test = [corpus[k] for k in index_test]
+        labels = df['Label']
+        labels_train = [labels[k] for k in index_train]
+        labels_test = [labels[k] for k in index_test]
+
+        # Bag of Words
+        vectorizer = CountVectorizer(stop_words='english')
+        bow_train = vectorizer.fit_transform(corpus_train)
+        bow_train = bow_train.toarray()
+        bow_test = vectorizer.transform(corpus_test)
+        # Term Frequency - Inverse Document Frequency
+        transformer = TfidfTransformer(smooth_idf=False)
+        tfidf_train = transformer.fit_transform(bow_train)
+        tfidf_train.toarray()
+        tfidf_test = transformer.transform(bow_test)
+
+        # select reviews
+        smote = SMOTE(k_neighbors=3)
+        bow_train, labels_train_bow = smote.fit_resample(bow_train, labels_train)
+        tfidf_train, labels_train_tf = smote.fit_resample(tfidf_train, labels_train)
+    else:
+        trainll, testll = getIndexes(df)  # contains indexes for testing and training
+        # select reviews
+        corpus_train = df['Text'].iloc[trainll[i]]
+        corpus_test = df['Text'].iloc[testll[i]]
+        # select labels
+        labels_train_bow = df['Label'].iloc[trainll[i]]
+        labels_train_tf = labels_train_bow
+        labels_test = df['Label'].iloc[testll[i]]
+
+        # Bag of Words
+        vectorizer = CountVectorizer(stop_words='english')
+        bow_train = vectorizer.fit_transform(corpus_train)
+        bow_train = bow_train.toarray()
+        bow_test = vectorizer.transform(corpus_test)
+
+        # Term Frequency - Inverse Document Frequency
+        transformer = TfidfTransformer(smooth_idf=False)
+        tfidf_train = transformer.fit_transform(bow_train)
+        tfidf_train.toarray()
+        tfidf_test = transformer.transform(bow_test)
+
+        '''
+        # chi2 to select the best correlated terms
+        features_chi2 = chi2(bow_train, labels_train_bow)
+        indices = np.argsort(features_chi2[0])
+        feature_names = np.array(vectorizer.get_feature_names())[indices]
+        unigramst = [v for v in feature_names if len(v.split(' ')) == 1]
+        unigrams.extend(unigramst[-5:])'''
+
+    if (costLearning):
+        weights = {'_Label_Zero': 1, df.iloc[label_relevants[0]]['Label']: 15} #balanced
+        # train, predict and evaluate with Decision Tree - BOW
+        TREE = tree.DecisionTreeClassifier(class_weight=weights)
+        TREE.fit(bow_train, labels_train_bow)
+        predictions = TREE.predict(bow_test)
+        TP_TREEt, TN_TREEt, FP_TREEt, FN_TREEt = confusionMatrix(predictions, labels_test)
+        TP_TREE += TP_TREEt
+        TN_TREE += TN_TREEt
+        FP_TREE += FP_TREEt
+        FN_TREE += FN_TREEt
+
+        # train, predict and evaluate with Decision Tree - BOW
+        TREE = tree.DecisionTreeClassifier(class_weight=weights)
+        TREE.fit(tfidf_train, labels_train_tf)
+        predictions = TREE.predict(tfidf_test)
+        TP_TREEtft, TN_TREEtft, FP_TREEtft, FN_TREEtft = confusionMatrix(predictions, labels_test)
+        TP_TREEtf += TP_TREEtft
+        TN_TREEtf += TN_TREEtft
+        FP_TREEtf += FP_TREEtft
+        FN_TREEtf += FN_TREEtft
+
+        # train, predict and evaluate with Decision Tree - TFIDF
+        SVM = LinearSVC(class_weight=weights)
+        SVM.fit(bow_train, labels_train_bow)
+        predictions = SVM.predict(bow_test)
+        TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
+        TP_SVM += TP_SVMt
+        TN_SVM += TN_SVMt
+        FP_SVM += FP_SVMt
+        FN_SVM += FN_SVMt
+
+        # train, predict and evaluate with SVM - TFIDF
+        SVM = LinearSVC(class_weight=weights)
+        SVM.fit(tfidf_train, labels_train_tf)
+        predictions = SVM.predict(tfidf_test)
+        TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
+        TP_SVMtf += TP_SVMtft
+        TN_SVMtf += TN_SVMtft
+        FP_SVMtf += FP_SVMtft
+        FN_SVMtf += FN_SVMtft
+
+        # train, predict and evaluate with Logistic Regression - BOW
+        LR = LogisticRegression(random_state=0, class_weight=weights)
+        LR.fit(bow_train, labels_train_bow)
+        predictions = LR.predict(bow_test)
+        TP_LRt, TN_LRt, FP_LRt, FN_LRt = confusionMatrix(predictions, labels_test)
+        TP_LR += TP_LRt
+        TN_LR += TN_LRt
+        FP_LR += FP_LRt
+        FN_LR += FN_LRt
+
+        # train, predict and evaluate with Logistic Regression - TFIDF
+        LR = LogisticRegression(random_state=0, class_weight=weights)
+        LR.fit(tfidf_train, labels_train_tf)
+        predictions = LR.predict(tfidf_test)
+        TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
+        TP_LRtf += TP_LRtft
+        TN_LRtf += TN_LRtft
+        FP_LRtf += FP_LRtft
+        FN_LRtf += FN_LRtft
+    else:
+        # train, predict and evaluate with Multinomial Naive Bayes - BOW
+        naive_bayes = MultinomialNB()
+        naive_bayes.fit(bow_train, labels_train_bow)
+        predictions = naive_bayes.predict(bow_test)
+        TP_NBt, TN_NBt, FP_NBt, FN_NBt = confusionMatrix(predictions, labels_test)
+        TP_NB += TP_NBt
+        TN_NB += TN_NBt
+        FP_NB += FP_NBt
+        FN_NB += FN_NBt
+
+        # train, predict and evaluate with Multinomial Naive Bayes - TFIDF
+        naive_bayes = MultinomialNB()
+        naive_bayes.fit(tfidf_train, labels_train_tf)
+        predictions = naive_bayes.predict(tfidf_test)
+        TP_NBtft, TN_NBtft, FP_NBtft, FN_NBtft = confusionMatrix(predictions, labels_test)
+        TP_NBtf += TP_NBtft
+        TN_NBtf += TN_NBtft
+        FP_NBtf += FP_NBtft
+        FN_NBtf += FN_NBtft
+
+        # train, predict and evaluate with SVM - BOW
+        SVM = LinearSVC()
+        SVM.fit(bow_train, labels_train_bow)
+        predictions = SVM.predict(bow_test)
+        TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
+        TP_SVM += TP_SVMt
+        TN_SVM += TN_SVMt
+        FP_SVM += FP_SVMt
+        FN_SVM += FN_SVMt
+
+        # train, predict and evaluate with SVM - TFIDF
+        SVM = LinearSVC()
+        SVM.fit(tfidf_train, labels_train_tf)
+        predictions = SVM.predict(tfidf_test)
+        TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
+        TP_SVMtf += TP_SVMtft
+        TN_SVMtf += TN_SVMtft
+        FP_SVMtf += FP_SVMtft
+        FN_SVMtf += FN_SVMtft
+
+        # train, predict and evaluate with Logistic Regression - BOW
+        LR = LogisticRegression(random_state=0)
+        LR.fit(bow_train, labels_train_bow)
+        predictions = LR.predict(bow_test)
+        TP_LRt, TN_LRt, FP_LRt, FN_LRt = confusionMatrix(predictions, labels_test)
+        TP_LR += TP_LRt
+        TN_LR += TN_LRt
+        FP_LR += FP_LRt
+        FN_LR += FN_LRt
+
+        # train, predict and evaluate with Logistic Regression - TFIDF
+        LR = LogisticRegression(random_state=0)
+        LR.fit(tfidf_train, labels_train_tf)
+        predictions = LR.predict(tfidf_test)
+        TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
+        TP_LRtf += TP_LRtft
+        TN_LRtf += TN_LRtft
+        FP_LRtf += FP_LRtft
+        FN_LRtf += FN_LRtft
+
+        # train, predict and evaluate with Random Forest - BOW
+        RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
+        RF.fit(bow_train, labels_train_bow)
+        predictions = RF.predict(bow_test)
+        TP_RFt, TN_RFt, FP_RFt, FN_RFt = confusionMatrix(predictions, labels_test)
+        TP_RF += TP_RFt
+        TN_RF += TN_RFt
+        FP_RF += FP_RFt
+        FN_RF += FN_RFt
+
+        # train, predict and evaluate with Random Forest - TFIDF
+        RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
+        RF.fit(tfidf_train, labels_train_tf)
+        predictions = RF.predict(tfidf_test)
+        TP_RFtft, TN_RFtft, FP_RFtft, FN_RFtft = confusionMatrix(predictions, labels_test)
+        TP_RFtf += TP_RFtft
+        TN_RFtf += TN_RFtft
+        FP_RFtf += FP_RFtft
+        FN_RFtf += FN_RFtft
+
+        Grad = GradientBoostingClassifier()
+        Grad.fit(bow_train, labels_train_tf)
+        predictions = Grad.predict(bow_test)
+        TP_Gradt, TN_Gradt, FP_Gradt, FN_Gradt = confusionMatrix(predictions, labels_test)
+        TP_Grad += TP_Gradt
+        TN_Grad += TN_Gradt
+        FP_Grad += FP_Gradt
+        FN_Grad += FN_Gradt
+
+        Grad = GradientBoostingClassifier()
+        Grad.fit(tfidf_train, labels_train_tf)
+        predictions = Grad.predict(tfidf_test)
+        TP_Gradtft, TN_Gradtft, FP_Gradtft, FN_Gradtft = confusionMatrix(predictions, labels_test)
+        TP_Gradtf += TP_Gradtft
+        TN_Gradtf += TN_Gradtft
+        FP_Gradtf += FP_Gradtft
+        FN_Gradtf += FN_Gradtft
 
 def print_evaluation(dfs, classes, getIndexes, title, costLearning):
     print("============================================================================")
@@ -173,234 +421,11 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
         print("----------------------------------------------------------------------------")
         print("label: " + str(label))
 
-        #reset counters
-        TP_NB, TN_NB, FP_NB, FN_NB = 0, 0, 0, 0
-        TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf = 0, 0, 0, 0
-        TP_TREE, TN_TREE, FP_TREE, FN_TREE = 0, 0, 0, 0
-        TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf = 0, 0, 0, 0
-        TP_SVM, TN_SVM, FP_SVM, FN_SVM = 0, 0, 0, 0
-        TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf = 0, 0, 0, 0
-        TP_LR, TN_LR, FP_LR, FN_LR = 0, 0, 0, 0
-        TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf = 0, 0, 0, 0
-        TP_RF, TN_RF, FP_RF, FN_RF = 0, 0, 0, 0
-        TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf = 0, 0, 0, 0
-        unigrams = []
-        for l in range(50):
-            print("Iteration" + str(l))
-            for j in range(10):
-                if(getIndexes == False): #IF SMOTE:
-
-                    label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()  # contains indexes which column label matches label_zero
-                    label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
-
-                    index_train_zero = label_0s[:j * fold_size_0]
-                    index_train_zero.extend(label_0s[(j + 1) * fold_size_0:])
-                    index_train_relevant = label_relevants[:j * fold_size_relevant]
-                    index_train_relevant.extend(label_relevants[(j + 1) * fold_size_relevant:])
-                    index_train = index_train_relevant
-                    index_train.extend(index_train_zero)
-
-                    test_zero = label_0s[j * fold_size_0:(j + 1) * fold_size_0]
-                    test_relevant = label_relevants[j * fold_size_relevant:(j + 1) * fold_size_relevant]
-                    index_test = test_zero
-                    index_test.extend(test_relevant)
-
-                    corpus = df['Text']
-                    corpus_train = [corpus[k] for k in index_train]
-                    corpus_test = [corpus[k] for k in index_test]
-                    labels = df['Label']
-                    labels_train = [labels[k] for k in index_train]
-                    labels_test = [labels[k] for k in index_test]
-
-                    # Bag of Words
-                    vectorizer = CountVectorizer(stop_words='english')
-                    bow_train = vectorizer.fit_transform(corpus_train)
-                    bow_train = bow_train.toarray()
-                    bow_test = vectorizer.transform(corpus_test)
-                    # Term Frequency - Inverse Document Frequency
-                    transformer = TfidfTransformer(smooth_idf=False)
-                    tfidf_train = transformer.fit_transform(bow_train)
-                    tfidf_train.toarray()
-                    tfidf_test = transformer.transform(bow_test)
-
-                    # select reviews
-                    smote = SMOTE(k_neighbors=3)
-                    bow_train,  labels_train_bow= smote.fit_resample(bow_train, labels_train)
-                    tfidf_train, labels_train_tf = smote.fit_resample(tfidf_train, labels_train)
-                else:
-                    trainll, testll = getIndexes(df)  # contains indexes for testing and training
-                    # select reviews
-                    corpus_train = df['Text'].iloc[trainll[i]]
-                    corpus_test = df['Text'].iloc[testll[i]]
-                    # select labels
-                    labels_train_bow = df['Label'].iloc[trainll[i]]
-                    labels_train_tf = labels_train_bow
-                    labels_test = df['Label'].iloc[testll[i]]
-
-                    #Bag of Words
-                    vectorizer = CountVectorizer(stop_words='english')
-                    bow_train = vectorizer.fit_transform(corpus_train)
-                    bow_train = bow_train.toarray()
-                    bow_test = vectorizer.transform(corpus_test)
-
-                    #Term Frequency - Inverse Document Frequency
-                    transformer = TfidfTransformer(smooth_idf=False)
-                    tfidf_train = transformer.fit_transform(bow_train)
-                    tfidf_train.toarray()
-                    tfidf_test = transformer.transform(bow_test)
-
-                    #chi2 to select the best correlated terms
-                    features_chi2 = chi2(bow_train, labels_train_bow)
-                    indices = np.argsort(features_chi2[0])
-                    feature_names = np.array(vectorizer.get_feature_names())[indices]
-                    unigramst = [v for v in feature_names if len(v.split(' ')) == 1]
-                    unigrams.extend(unigramst[-5:])
-
-                if(costLearning):
-
-                    # train, predict and evaluate with Decision Tree - BOW
-                    TREE = tree.DecisionTreeClassifier(class_weight='balanced')
-                    TREE.fit(bow_train, labels_train_bow)
-                    predictions = TREE.predict(bow_test)
-                    TP_TREEt, TN_TREEt, FP_TREEt, FN_TREEt = confusionMatrix(predictions, labels_test)
-                    TP_TREE += TP_TREEt
-                    TN_TREE += TN_TREEt
-                    FP_TREE += FP_TREEt
-                    FN_TREE += FN_TREEt
-
-                    # train, predict and evaluate with Decision Tree - BOW
-                    TREE = tree.DecisionTreeClassifier(class_weight='balanced')
-                    TREE.fit(tfidf_train, labels_train_tf)
-                    predictions = TREE.predict(tfidf_test)
-                    TP_TREEtft, TN_TREEtft, FP_TREEtft, FN_TREEtft = confusionMatrix(predictions, labels_test)
-                    TP_TREEtf += TP_TREEtft
-                    TN_TREEtf += TN_TREEtft
-                    FP_TREEtf += FP_TREEtft
-                    FN_TREEtf += FN_TREEtft
-
-                    # train, predict and evaluate with Decision Tree - TFIDF
-                    SVM = LinearSVC(class_weight='balanced')
-                    SVM.fit(bow_train, labels_train_bow)
-                    predictions = SVM.predict(bow_test)
-                    TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
-                    TP_SVM += TP_SVMt
-                    TN_SVM += TN_SVMt
-                    FP_SVM += FP_SVMt
-                    FN_SVM += FN_SVMt
-
-                    # train, predict and evaluate with SVM - TFIDF
-                    SVM = LinearSVC(class_weight='balanced')
-                    SVM.fit(tfidf_train, labels_train_tf)
-                    predictions = SVM.predict(tfidf_test)
-                    TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
-                    TP_SVMtf += TP_SVMtft
-                    TN_SVMtf += TN_SVMtft
-                    FP_SVMtf += FP_SVMtft
-                    FN_SVMtf += FN_SVMtft
-
-                    # train, predict and evaluate with Logistic Regression - BOW
-                    LR = LogisticRegression(random_state=0, class_weight='balanced')
-                    LR.fit(bow_train, labels_train_bow)
-                    predictions = LR.predict(bow_test)
-                    TP_LRt, TN_LRt, FP_LRt, FN_LRt = confusionMatrix(predictions, labels_test)
-                    TP_LR += TP_LRt
-                    TN_LR += TN_LRt
-                    FP_LR += FP_LRt
-                    FN_LR += FN_LRt
-
-                    # train, predict and evaluate with Logistic Regression - TFIDF
-                    LR = LogisticRegression(random_state=0, class_weight='balanced')
-                    LR.fit(tfidf_train, labels_train_tf)
-                    predictions = LR.predict(tfidf_test)
-                    TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
-                    TP_LRtf += TP_LRtft
-                    TN_LRtf += TN_LRtft
-                    FP_LRtf += FP_LRtft
-                    FN_LRtf += FN_LRtft
-                else:
-                    #train, predict and evaluate with Multinomial Naive Bayes - BOW
-                    naive_bayes = MultinomialNB()
-                    naive_bayes.fit(bow_train, labels_train_bow)
-                    predictions = naive_bayes.predict(bow_test)
-                    TP_NBt, TN_NBt, FP_NBt, FN_NBt = confusionMatrix(predictions, labels_test)
-                    TP_NB += TP_NBt
-                    TN_NB += TN_NBt
-                    FP_NB += FP_NBt
-                    FN_NB += FN_NBt
-
-                    # train, predict and evaluate with Multinomial Naive Bayes - TFIDF
-                    naive_bayes = MultinomialNB()
-                    naive_bayes.fit(tfidf_train, labels_train_tf)
-                    predictions = naive_bayes.predict(tfidf_test)
-                    TP_NBtft, TN_NBtft, FP_NBtft, FN_NBtft = confusionMatrix(predictions, labels_test)
-                    TP_NBtf += TP_NBtft
-                    TN_NBtf += TN_NBtft
-                    FP_NBtf += FP_NBtft
-                    FN_NBtf += FN_NBtft
-
-                    # train, predict and evaluate with SVM - BOW
-                    SVM = LinearSVC()
-                    SVM.fit(bow_train, labels_train_bow)
-                    predictions = SVM.predict(bow_test)
-                    TP_SVMt, TN_SVMt, FP_SVMt, FN_SVMt = confusionMatrix(predictions, labels_test)
-                    TP_SVM += TP_SVMt
-                    TN_SVM += TN_SVMt
-                    FP_SVM += FP_SVMt
-                    FN_SVM += FN_SVMt
-
-                    #train, predict and evaluate with SVM - TFIDF
-                    SVM = LinearSVC()
-                    SVM.fit(tfidf_train, labels_train_tf)
-                    predictions = SVM.predict(tfidf_test)
-                    TP_SVMtft, TN_SVMtft, FP_SVMtft, FN_SVMtft = confusionMatrix(predictions, labels_test)
-                    TP_SVMtf += TP_SVMtft
-                    TN_SVMtf += TN_SVMtft
-                    FP_SVMtf += FP_SVMtft
-                    FN_SVMtf += FN_SVMtft
-
-                    # train, predict and evaluate with Logistic Regression - BOW
-                    LR = LogisticRegression(random_state=0)
-                    LR.fit(bow_train, labels_train_bow)
-                    predictions = LR.predict(bow_test)
-                    TP_LRt, TN_LRt, FP_LRt, FN_LRt = confusionMatrix(predictions, labels_test)
-                    TP_LR += TP_LRt
-                    TN_LR += TN_LRt
-                    FP_LR += FP_LRt
-                    FN_LR += FN_LRt
-
-                    # train, predict and evaluate with Logistic Regression - TFIDF
-                    LR = LogisticRegression(random_state=0)
-                    LR.fit(tfidf_train, labels_train_tf)
-                    predictions = LR.predict(tfidf_test)
-                    TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
-                    TP_LRtf += TP_LRtft
-                    TN_LRtf += TN_LRtft
-                    FP_LRtf += FP_LRtft
-                    FN_LRtf += FN_LRtft
-
-                    # train, predict and evaluate with Random Forest - BOW
-                    RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
-                    RF.fit(bow_train, labels_train_bow)
-                    predictions = RF.predict(bow_test)
-                    TP_RFt, TN_RFt, FP_RFt, FN_RFt = confusionMatrix(predictions, labels_test)
-                    TP_RF += TP_RFt
-                    TN_RF += TN_RFt
-                    FP_RF += FP_RFt
-                    FN_RF += FN_RFt
-
-                    # train, predict and evaluate with Random Forest - TFIDF
-                    RF = RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0)
-                    RF.fit(tfidf_train, labels_train_tf)
-                    predictions = RF.predict(tfidf_test)
-                    TP_RFtft, TN_RFtft, FP_RFtft, FN_RFtft = confusionMatrix(predictions, labels_test)
-                    TP_RFtf += TP_RFtft
-                    TN_RFtf += TN_RFtft
-                    FP_RFtf += FP_RFtft
-                    FN_RFtf += FN_RFtft
+        Parallel(n_jobs=-1, require='sharedmem')(delayed(thread_code)(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearning, label_relevants) for j in range(10))
 
         if (costLearning):
 
-            precisionSVM, recallSVM, fmeasureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
+            precisionSVM, recallSVM, fmeasureSVM, f2measureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
             print("SVM - BOW:\n\tPrecision = " + str(precisionSVM) + "\n\tRecall = " + str(
                 recallSVM) + "\n\tF-Measure = " + str(fmeasureSVM)+ "\n\tF2-Measure = " + str(f2measureSVM))
             printConfusionMatrix(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
@@ -430,14 +455,14 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
             printConfusionMatrix(TP_LR, TN_LR, FP_LR, FN_LR)
             printEvalCost(TP_LR, TN_LR, FP_LR, FN_LR, ratio)
 
-            precisionLRtf, recallLRtf, fmeasureLRtf, f2measureLR = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
+            precisionLRtf, recallLRtf, fmeasureLRtf, f2measureLRtf = evaluate(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
             print("LR - TF-IDF:\n\tPrecision = " + str(precisionLRtf) + "\n\tRecall = " + str(
                 recallLRtf) + "\n\tF-Measure = " + str(fmeasureLRtf)+ "\n\tF2-Measure = " + str(f2measureLRtf))
             printConfusionMatrix(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf)
             printEvalCost(TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf, ratio)
         else:
-            unigrams = list(dict.fromkeys(unigrams))
-            print("  . Most correlated unigrams:\n." +str(unigrams))
+            #unigrams = list(dict.fromkeys(unigrams))
+            #print("  . Most correlated unigrams:\n." +str(unigrams))
 
             precisionNB, recallNB, fmeasureNB, f2measureNB = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
             print("Naive Bayes - BOW:\n\tPrecision = "+ str(precisionNB) + "\n\tRecall = "+str(recallNB) + "\n\tF-Measure = "+str(fmeasureNB)+ "\n\tF2-Measure = " + str(f2measureNB))
@@ -470,6 +495,16 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
             precisionRFtf, recallRFtf, fmeasureRFtf, f2measureRFtf = evaluate(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
             print("RF - TF-IDF:\n\tPrecision = " + str(precisionRFtf) + "\n\tRecall = " + str(recallRFtf) + "\n\tF-Measure = " + str(fmeasureRFtf)+ "\n\tF2-Measure = " + str(f2measureRFtf))
             printConfusionMatrix(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
+
+            precisionGrad, recallGrad, fmeasureGrad, f2measureGrad = evaluate(TP_Grad, TN_Grad, FP_Grad, FN_Grad)
+            print("Grad - TF-IDF:\n\tPrecision = " + str(precisionGrad) + "\n\tRecall = " + str(
+                recallGrad) + "\n\tF-Measure = " + str(fmeasureGrad) + "\n\tF2-Measure = " + str(f2measureGrad))
+            printConfusionMatrix(TP_Grad, TN_Grad, FP_Grad, FN_Grad)
+
+            precisionGradtf, recallGradtf, fmeasureGradtf, f2measureGradtf = evaluate(TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf)
+            print("Grad - TF-IDF:\n\tPrecision = " + str(precisionGradtf) + "\n\tRecall = " + str(
+                recallGradtf) + "\n\tF-Measure = " + str(fmeasureGradtf) + "\n\tF2-Measure = " + str(f2measureGradtf))
+            printConfusionMatrix(TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf)
 
 #main
 start_time = time.time()
