@@ -406,6 +406,7 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         FN_Gradtf += FN_Gradtft
 
 def print_evaluation(dfs, classes, getIndexes, title, costLearning):
+    global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf #, unigrams
     print("============================================================================")
     print(title)
     for i in range(len(dfs)): #each dataframe corresponds to a different class
@@ -417,6 +418,20 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
         ratio = len(label_relevants)/len(label_0s)
         fold_size_0 = floor(len(label_0s) / 10)
         fold_size_relevant = floor(len(label_relevants) / 10)
+
+        #reset counters
+        TP_NB, TN_NB, FP_NB, FN_NB = 0, 0, 0, 0
+        TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf = 0, 0, 0, 0
+        TP_TREE, TN_TREE, FP_TREE, FN_TREE = 0, 0, 0, 0
+        TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf = 0, 0, 0, 0
+        TP_SVM, TN_SVM, FP_SVM, FN_SVM = 0, 0, 0, 0
+        TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf = 0, 0, 0, 0
+        TP_LR, TN_LR, FP_LR, FN_LR = 0, 0, 0, 0
+        TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf = 0, 0, 0, 0
+        TP_RF, TN_RF, FP_RF, FN_RF = 0, 0, 0, 0
+        TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf = 0, 0, 0, 0
+        TP_Grad, TN_Grad, FP_Grad, FN_Grad = 0, 0, 0, 0
+        TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf = 0, 0, 0, 0
 
         print("----------------------------------------------------------------------------")
         print("label: " + str(label))
@@ -509,7 +524,7 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
 #main
 start_time = time.time()
 dfs, labels = load_data()
-print_evaluation(dfs, labels, getIndexesCV, "Normal 10fold - Cross Validation", False)
+print_evaluation(dfs, labels, getIndexesCV, "Normal 10fold - Cross Validation", False) #last parameter stands for cost sensitive learning mode = off
 print_evaluation(dfs, labels, getIndexesUS, "10fold - Cross Validation with UnderSampling", False)
 print_evaluation(dfs, labels, False, "10fold - Cross Validation with SMOTE", False)    #"Get indexes = False" stands for "smote_mode = on"
 print_evaluation(dfs, labels, getIndexesCV, "Cost Sensitive Learning: 10fold - Cross Validation", True)
