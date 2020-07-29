@@ -68,47 +68,46 @@ def load_data():
 def getIndexesUS(df): #10fold Cross Validation with under sampling
     label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()  # contains indexes which column label matches label_zero
     label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
-    shuffle(label_0s)
-    shuffle(label_relevants)
+    #shuffle(label_0s)
+    #shuffle(label_relevants)
     original_ratio = len(label_relevants)/len(label_0s)
     list_of_training_indexes_lists = []
     list_of_testing_indexes_lists = []
+    label_relevants_fold_size = floor(len(label_relevants) / 10)
+    label_0_fold_size = floor(label_relevants_fold_size / original_ratio)
     for i in range(10):
         # number of irrelevant features to retrieve from label_0 is 9/10*fold_size because of 10 fold cross validation
-        fold_size = floor(len(label_relevants) / 10)
-        label_0s_downsample_train = label_0s[:i * fold_size]
-        label_0s_downsample_train.extend(label_0s[(i + 1) * fold_size:10 * fold_size])
-        label_relevants_train = label_relevants[:i * fold_size]
-        label_relevants_train.extend(label_relevants[(i + 1) * fold_size:10 * fold_size])
+        label_0s_downsample_train = label_0s[:i * label_0_fold_size]
+        label_0s_downsample_train.extend(label_0s[(i + 1) * label_0_fold_size:10 * label_0_fold_size])
+        label_relevants_train = label_relevants[:i * label_relevants_fold_size]
+        label_relevants_train.extend(label_relevants[(i + 1) * label_relevants_fold_size:10 * label_relevants_fold_size])
         training_indexes = label_0s_downsample_train
         training_indexes.extend(label_relevants_train)
-        shuffle(training_indexes)
+        #shuffle(training_indexes)
         list_of_training_indexes_lists.append(training_indexes)
 
-        shuffle(label_0s)
-        label_0s_test = label_0s[:floor(fold_size / original_ratio)]
-        label_relevants_test = label_relevants[i * fold_size:(i + 1) * fold_size]
+        #shuffle(label_0s)
+        label_0s_test = label_0s[i * label_0_fold_size:(i+1)*label_0_fold_size]
+        label_relevants_test = label_relevants[i * label_relevants_fold_size:(i + 1) * label_relevants_fold_size]
         testing_indexes = label_relevants_test
         testing_indexes.extend(label_0s_test)
-        shuffle(testing_indexes)
+        #shuffle(testing_indexes)
         list_of_testing_indexes_lists.append(testing_indexes)
-
     return list_of_training_indexes_lists, list_of_testing_indexes_lists
 
 def getIndexesCV(df): #Normal 10fold Cross-Validation
-    labels = df.index[df['Label'] == '_Label_Zero'].tolist()
-    labels.extend(df.index[df['Label'] != '_Label_Zero'].tolist())
-    shuffle(labels)
-    fold_size = floor(len(labels)/10) #1500 / 10 = 150
+    indexes = [item for item in range(len(df))]
+    #shuffle(indexes) #gives error if not commented, dunno why
+    fold_size = floor(len(indexes) / 10) #1500 / 10 = 150
     list_of_training_indexes_lists = []
     list_of_testing_indexes_lists = []
 
     for i in range(10):
-        labels_train_fold = labels[:i*fold_size]
-        labels_train_fold.extend(labels[(i+1)*fold_size:])
+        labels_train_fold = indexes[:i * fold_size]
+        labels_train_fold.extend(indexes[(i + 1) * fold_size:])
         list_of_training_indexes_lists.append(labels_train_fold)
 
-        labels_test_fold = labels[i*fold_size:(i+1)*fold_size]
+        labels_test_fold = indexes[i * fold_size:(i + 1) * fold_size]
         list_of_testing_indexes_lists.append(labels_test_fold)
     return list_of_training_indexes_lists, list_of_testing_indexes_lists
 
@@ -173,13 +172,15 @@ TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf = 0, 0, 0, 0
 TP_Grad, TN_Grad, FP_Grad, FN_Grad = 0, 0, 0, 0
 TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf = 0, 0, 0, 0
 #unigrams = []
+pred_list = []
+text_list = []
 
-def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearning, label_relevants):
-    global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf #, unigrams
+def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearningWeight):
+    global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf, pred_list, text_list #, unigrams
+
+    label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()  # contains indexes which column label matches label_zero
+    label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
     if (getIndexes == False):  # IF SMOTE:
-
-        label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()  # contains indexes which column label matches label_zero
-        label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
 
         index_train_zero = label_0s[:j * fold_size_0]
         index_train_zero.extend(label_0s[(j + 1) * fold_size_0:])
@@ -216,14 +217,14 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         bow_train, labels_train_bow = smote.fit_resample(bow_train, labels_train)
         tfidf_train, labels_train_tf = smote.fit_resample(tfidf_train, labels_train)
     else:
-        trainll, testll = getIndexes(df)  # contains indexes for testing and training
+        trainll, testll = getIndexes(df)  # contains indexes for training and testing
         # select reviews
-        corpus_train = df['Text'].iloc[trainll[i]]
-        corpus_test = df['Text'].iloc[testll[i]]
+        corpus_train = df['Text'].loc[trainll[j]]
+        corpus_test = df['Text'].loc[testll[j]]
         # select labels
-        labels_train_bow = df['Label'].iloc[trainll[i]]
+        labels_train_bow = df['Label'].iloc[trainll[j]]
         labels_train_tf = labels_train_bow
-        labels_test = df['Label'].iloc[testll[i]]
+        labels_test = df['Label'].iloc[testll[j]]
 
         # Bag of Words
         vectorizer = CountVectorizer(stop_words='english')
@@ -245,12 +246,16 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         unigramst = [v for v in feature_names if len(v.split(' ')) == 1]
         unigrams.extend(unigramst[-5:])'''
 
-    if (costLearning):
-        weights = {'_Label_Zero': 1, df.iloc[label_relevants[0]]['Label']: 15} #balanced
+    if (costLearningWeight != False):
+        if(str(costLearningWeight) == "balanced"):
+            weights = 'balanced'
+        else:
+            weights = {'_Label_Zero': 1, df.iloc[label_relevants[0]]['Label']: costLearningWeight}
         # train, predict and evaluate with Decision Tree - BOW
         TREE = tree.DecisionTreeClassifier(class_weight=weights)
         TREE.fit(bow_train, labels_train_bow)
         predictions = TREE.predict(bow_test)
+
         TP_TREEt, TN_TREEt, FP_TREEt, FN_TREEt = confusionMatrix(predictions, labels_test)
         TP_TREE += TP_TREEt
         TN_TREE += TN_TREEt
@@ -301,6 +306,8 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         LR = LogisticRegression(random_state=0, class_weight=weights)
         LR.fit(tfidf_train, labels_train_tf)
         predictions = LR.predict(tfidf_test)
+        text_list.extend(corpus_test)
+        pred_list.extend(predictions)
         TP_LRtft, TN_LRtft, FP_LRtft, FN_LRtft = confusionMatrix(predictions, labels_test)
         TP_LRtf += TP_LRtft
         TN_LRtf += TN_LRtft
@@ -311,6 +318,8 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         naive_bayes = MultinomialNB()
         naive_bayes.fit(bow_train, labels_train_bow)
         predictions = naive_bayes.predict(bow_test)
+        text_list.extend(corpus_test)
+        pred_list.extend(predictions)
         TP_NBt, TN_NBt, FP_NBt, FN_NBt = confusionMatrix(predictions, labels_test)
         TP_NB += TP_NBt
         TN_NB += TN_NBt
@@ -405,8 +414,8 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         FP_Gradtf += FP_Gradtft
         FN_Gradtf += FN_Gradtft
 
-def print_evaluation(dfs, classes, getIndexes, title, costLearning):
-    global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf #, unigrams
+def print_evaluation(dfs, classes, getIndexes, title, costLearningWeight):
+    global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf, pred_list, text_list #, unigrams
     print("============================================================================")
     print(title)
     for i in range(len(dfs)): #each dataframe corresponds to a different class
@@ -432,13 +441,35 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
         TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf = 0, 0, 0, 0
         TP_Grad, TN_Grad, FP_Grad, FN_Grad = 0, 0, 0, 0
         TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf = 0, 0, 0, 0
+        pred_list = [] #contains the predicted labels
+        text_list = [] #contains the predicted texts
 
         print("----------------------------------------------------------------------------")
         print("label: " + str(label))
 
-        Parallel(n_jobs=-1, require='sharedmem')(delayed(thread_code)(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearning, label_relevants) for j in range(10))
+        Parallel(n_jobs=-1, require='sharedmem')(delayed(thread_code)(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearningWeight) for j in range(10))
 
-        if (costLearning):
+        if (costLearningWeight != False):
+            #preparation for chi2
+            newdf = pd.DataFrame(list(zip(text_list, pred_list)),
+                         columns=['Text', 'Label'])
+            corpus_pred = newdf['Text']
+            labels_pred = newdf['Label']
+            vectorizer = CountVectorizer(stop_words='english')
+            bow_pred = vectorizer.fit_transform(corpus_pred)
+            bow_pred = bow_pred.toarray()
+
+            # chi2 to select the best correlated terms for the predicted labels
+            features_chi2 = chi2(bow_pred, labels_pred)
+            indices = np.argsort(features_chi2[0])
+            feature_names = np.array(vectorizer.get_feature_names())[indices]
+            unigramst = [v for v in feature_names if len(v.split(' ')) == 1]
+            unigrams = list(dict.fromkeys(unigramst[-5:]))
+            print("  . Most correlated unigrams:\n." +str(unigrams))
+
+            print(pred_list)
+            #pred_file = pd.DataFrame(text_list, pred_list)
+            newdf.to_csv(str(label) + '_predfile.csv', index=False, sep=';')
 
             precisionSVM, recallSVM, fmeasureSVM, f2measureSVM = evaluate(TP_SVM, TN_SVM, FP_SVM, FN_SVM)
             print("SVM - BOW:\n\tPrecision = " + str(precisionSVM) + "\n\tRecall = " + str(
@@ -478,6 +509,9 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
         else:
             #unigrams = list(dict.fromkeys(unigrams))
             #print("  . Most correlated unigrams:\n." +str(unigrams))
+            newdf = pd.DataFrame(list(zip(text_list, pred_list)),
+                                 columns=['Text', 'Label'])
+            newdf.to_csv(str(label) + '_predfile.csv', index=False, sep=';')
 
             precisionNB, recallNB, fmeasureNB, f2measureNB = evaluate(TP_NB, TN_NB, FP_NB, FN_NB)
             print("Naive Bayes - BOW:\n\tPrecision = "+ str(precisionNB) + "\n\tRecall = "+str(recallNB) + "\n\tF-Measure = "+str(fmeasureNB)+ "\n\tF2-Measure = " + str(f2measureNB))
@@ -523,10 +557,15 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearning):
 
 #main
 start_time = time.time()
-dfs, labels = load_data()
-print_evaluation(dfs, labels, getIndexesCV, "Normal 10fold - Cross Validation", False) #last parameter stands for cost sensitive learning mode = off
-print_evaluation(dfs, labels, getIndexesUS, "10fold - Cross Validation with UnderSampling", False)
-print_evaluation(dfs, labels, False, "10fold - Cross Validation with SMOTE", False)    #"Get indexes = False" stands for "smote_mode = on"
-print_evaluation(dfs, labels, getIndexesCV, "Cost Sensitive Learning: 10fold - Cross Validation", True)
+dfs, indexes = load_data()
+
+print_evaluation(dfs, indexes, getIndexesCV, "Normal 10fold - Cross Validation", False) #last parameter stands for cost sensitive learning mode = off
+print_evaluation(dfs, indexes, getIndexesUS, "10fold - Cross Validation with UnderSampling", False)
+print_evaluation(dfs, indexes, False, "10fold - Cross Validation with SMOTE", False)    #"Get indexes = False" stands for "smote_mode = on"
+print_evaluation(dfs, indexes, getIndexesCV, "Cost Sensitive Learning \'balanced\' > 10fold - Cross Validation", "balanced")
+print_evaluation(dfs, indexes, getIndexesCV, "Cost Sensitive Learning 1:2 > 10fold - Cross Validation", 2)
+print_evaluation(dfs, indexes, getIndexesCV, "Cost Sensitive Learning 1:5 > 10fold - Cross Validation", 5)
+print_evaluation(dfs, indexes, getIndexesCV, "Cost Sensitive Learning 1:10 > 10fold - Cross Validation", 10)
+
 
 print("Execution Time: " + str(floor((time.time() - start_time)/60)) + "min " + str((time.time() - start_time)%60) + "sec")
