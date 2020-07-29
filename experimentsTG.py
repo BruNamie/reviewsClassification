@@ -467,7 +467,6 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearningWeight):
             unigrams = list(dict.fromkeys(unigramst[-5:]))
             print("  . Most correlated unigrams:\n." +str(unigrams))
 
-            print(pred_list)
             #pred_file = pd.DataFrame(text_list, pred_list)
             newdf.to_csv(str(label) + '_predfile.csv', index=False, sep=';')
 
@@ -546,7 +545,7 @@ def print_evaluation(dfs, classes, getIndexes, title, costLearningWeight):
             printConfusionMatrix(TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf)
 
             precisionGrad, recallGrad, fmeasureGrad, f2measureGrad = evaluate(TP_Grad, TN_Grad, FP_Grad, FN_Grad)
-            print("Grad - TF-IDF:\n\tPrecision = " + str(precisionGrad) + "\n\tRecall = " + str(
+            print("Grad - BOW:\n\tPrecision = " + str(precisionGrad) + "\n\tRecall = " + str(
                 recallGrad) + "\n\tF-Measure = " + str(fmeasureGrad) + "\n\tF2-Measure = " + str(f2measureGrad))
             printConfusionMatrix(TP_Grad, TN_Grad, FP_Grad, FN_Grad)
 
