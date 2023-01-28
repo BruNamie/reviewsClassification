@@ -19,8 +19,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 
 from joblib import Parallel, delayed
 
-#load dataset and return dataframes
 def load_data():
+    """Loads the dataset and returns a list of dataframes corresponding to each category and a list of classes."""
     df = pd.read_csv('reviews.csv', '¨')
     df = df.drop(['other', 'Star rating', 'Product'], 'columns')
     df['Functional'].replace('x', '_Label_Func', inplace=True)
@@ -65,7 +65,10 @@ def load_data():
     dfs.append(usability_df)
     return dfs, columns
 
-def getIndexesUS(df): #10fold Cross Validation with under sampling
+def getIndexesUS(df): 
+    """Creates 2 lists: indexes for train and indexes for test. 
+    They will be used in the Normal 10-Fold Cross-Validation with undersampling.
+    """
     label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()  # contains indexes which column label matches label_zero
     label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
     #shuffle(label_0s)
@@ -75,6 +78,7 @@ def getIndexesUS(df): #10fold Cross Validation with under sampling
     list_of_testing_indexes_lists = []
     label_relevants_fold_size = floor(len(label_relevants) / 10)
     label_0_fold_size = floor(label_relevants_fold_size / original_ratio)
+
     for i in range(10):
         # number of irrelevant features to retrieve from label_0 is 9/10*fold_size because of 10 fold cross validation
         label_0s_downsample_train = label_0s[:i * label_0_fold_size]
@@ -95,7 +99,10 @@ def getIndexesUS(df): #10fold Cross Validation with under sampling
         list_of_testing_indexes_lists.append(testing_indexes)
     return list_of_training_indexes_lists, list_of_testing_indexes_lists
 
-def getIndexesCV(df): #Normal 10fold Cross-Validation
+def getIndexesCV(df): 
+    """Creates 2 lists: indexes for train and indexes for test. 
+    They will be used in the Normal 10-Fold Cross-Validation.
+    """
     indexes = [item for item in range(len(df))]
     #shuffle(indexes) #gives error if not commented, dunno why
     fold_size = floor(len(indexes) / 10) #1500 / 10 = 150
@@ -112,6 +119,7 @@ def getIndexesCV(df): #Normal 10fold Cross-Validation
     return list_of_training_indexes_lists, list_of_testing_indexes_lists
 
 def confusionMatrix(predictions, real_labels):
+    """Compares the predictions with the expected results, returning parameters for the Confusion Matrix."""
     TrueNegatives = 0
     FalseNegatives = 0
     TruePositives = 0
@@ -135,6 +143,7 @@ def confusionMatrix(predictions, real_labels):
     return TruePositives, TrueNegatives, FalsePositives, FalseNegatives
 
 def evaluate(TruePositives, TrueNegatives, FalsePositives, FalseNegatives):
+    """Calculates metrics: precision, recall, F1-measure and F2-measure."""
     if(TruePositives + FalsePositives == 0):
         precision = -1
     else:
@@ -144,17 +153,18 @@ def evaluate(TruePositives, TrueNegatives, FalsePositives, FalseNegatives):
     else:
         recall = TruePositives/(TruePositives + FalseNegatives)
     f1measure = 2*precision*recall/(precision + recall)
-
     f2measure = 5*TruePositives/(5*TruePositives + 4*FalseNegatives + FalsePositives)
 
     return precision, recall, f1measure, f2measure
 
 def printConfusionMatrix(TruePositives, TrueNegatives, FalsePositives, FalseNegatives):
+    """Prints the Confusion Matrix."""
     print("Confusion Matrix:")
     print("\t"+str(TruePositives) + "|" + str(FalseNegatives))
     print("\t"+str(FalsePositives)+ "|" + str(TrueNegatives)+"\n")
 
 def printEvalCost(TruePositives, TrueNegatives, FalsePositives, FalseNegatives, ratio):
+    """Prints the cost."""
     cost = 0*TruePositives + 0*TrueNegatives + 1*FalsePositives + FalseNegatives/ratio
     print("Cost: " + str(cost) + "\n")
 
@@ -176,12 +186,15 @@ pred_list = []
 text_list = []
 
 def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearningWeight):
+    """Trains the models/algorithms using or not the balancing techniques and makes the predictions, updating the parameters of the Confusion Matrix.
+    It is done for each iteration of the Cross-Validation.
+    """
     global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf, pred_list, text_list #, unigrams
 
     label_0s = df.index[df['Label'] == '_Label_Zero'].tolist()  # contains indexes which column label matches label_zero
     label_relevants = df.index[df['Label'] != '_Label_Zero'].tolist()
-    if (getIndexes == False):  # IF SMOTE:
 
+    if (getIndexes == False):  # IF SMOTE:
         index_train_zero = label_0s[:j * fold_size_0]
         index_train_zero.extend(label_0s[(j + 1) * fold_size_0:])
         index_train_relevant = label_relevants[:j * fold_size_relevant]
@@ -231,7 +244,6 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         bow_train = vectorizer.fit_transform(corpus_train)
         bow_train = bow_train.toarray()
         bow_test = vectorizer.transform(corpus_test)
-
         # Term Frequency - Inverse Document Frequency
         transformer = TfidfTransformer(smooth_idf=False)
         tfidf_train = transformer.fit_transform(bow_train)
@@ -251,18 +263,18 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
             weights = 'balanced'
         else:
             weights = {'_Label_Zero': 1, df.iloc[label_relevants[0]]['Label']: costLearningWeight}
+        
         # train, predict and evaluate with Decision Tree - BOW
         TREE = tree.DecisionTreeClassifier(class_weight=weights)
         TREE.fit(bow_train, labels_train_bow)
         predictions = TREE.predict(bow_test)
-
         TP_TREEt, TN_TREEt, FP_TREEt, FN_TREEt = confusionMatrix(predictions, labels_test)
         TP_TREE += TP_TREEt
         TN_TREE += TN_TREEt
         FP_TREE += FP_TREEt
         FN_TREE += FN_TREEt
 
-        # train, predict and evaluate with Decision Tree - BOW
+        # train, predict and evaluate with Decision Tree - TFIDF
         TREE = tree.DecisionTreeClassifier(class_weight=weights)
         TREE.fit(tfidf_train, labels_train_tf)
         predictions = TREE.predict(tfidf_test)
@@ -272,7 +284,7 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         FP_TREEtf += FP_TREEtft
         FN_TREEtf += FN_TREEtft
 
-        # train, predict and evaluate with Decision Tree - TFIDF
+        # train, predict and evaluate with SVM - BOW
         SVM = LinearSVC(class_weight=weights)
         SVM.fit(bow_train, labels_train_bow)
         predictions = SVM.predict(bow_test)
@@ -396,6 +408,7 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         FP_RFtf += FP_RFtft
         FN_RFtf += FN_RFtft
 
+        # train, predict and evaluate with Gradient Boosting Classifier - BOW
         Grad = GradientBoostingClassifier()
         Grad.fit(bow_train, labels_train_tf)
         predictions = Grad.predict(bow_test)
@@ -405,6 +418,7 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         FP_Grad += FP_Gradt
         FN_Grad += FN_Gradt
 
+        # train, predict and evaluate with Gradient Boosting Classifier - TFIDF
         Grad = GradientBoostingClassifier()
         Grad.fit(tfidf_train, labels_train_tf)
         predictions = Grad.predict(tfidf_test)
@@ -415,9 +429,14 @@ def thread_code(j, getIndexes, df, fold_size_0, fold_size_relevant, i, costLearn
         FN_Gradtf += FN_Gradtft
 
 def print_evaluation(dfs, classes, getIndexes, title, costLearningWeight):
+    """"Organizes which dataset and data will be used for training and testing each time.
+    Prints all the results: metrics of each model and the words most correlated to each category.
+    """
     global TP_NB, TN_NB, FP_NB, FN_NB, TP_NBtf, TN_NBtf, FP_NBtf, FN_NBtf,TP_TREE, TN_TREE, FP_TREE, FN_TREE,TP_TREEtf, TN_TREEtf, FP_TREEtf, FN_TREEtf,TP_SVM, TN_SVM, FP_SVM, FN_SVM,TP_SVMtf, TN_SVMtf, FP_SVMtf, FN_SVMtf,TP_LR, TN_LR, FP_LR, FN_LR,TP_LRtf, TN_LRtf, FP_LRtf, FN_LRtf,TP_RF, TN_RF, FP_RF, FN_RF,TP_RFtf, TN_RFtf, FP_RFtf, FN_RFtf, TP_Grad, TN_Grad, FP_Grad, FN_Grad, TP_Gradtf, TN_Gradtf, FP_Gradtf, FN_Gradtf, pred_list, text_list #, unigrams
+    
     print("============================================================================")
     print(title)
+
     for i in range(len(dfs)): #each dataframe corresponds to a different class
         df = dfs[i]
         label = classes[i]
